@@ -774,10 +774,94 @@ window.addEventListener("load", () => {
     }
 });
 	
+function toggleShuffleMode() {
+    playSfx('click');
+    isShuffleMode = !isShuffleMode;
+    const btn = document.getElementById('btn-shuffle-music');
+    if(isShuffleMode) {
+        btn.classList.add('btn-shuffle-active');
+        btn.innerText = "ĐANG TRÁO";
+        gsap.killTweensOf(localAudio); // Cắt đuôi nhạc cũ ngay lập tức, không cho fade nữa
+        playRandomSong();
+    } else {
+        btn.classList.remove('btn-shuffle-active');
+        btn.innerText = "TRÁO NHẠC";
+        playMasterMusic('menu');
+    }
+    renderMusicPages();
+}
+
+function playMasterMusic(t) {
+    if(isShuffleMode) return;
+    const k = userMusicConfig[t];
+    gsap.killTweensOf(localAudio);
+    if(!k) {
+        gsap.to(localAudio, { volume: 0, duration: 1, onComplete: () => { localAudio.pause(); currentMusicKey = null; }});
+        return;
+    }
+    if (currentMusicKey === k && localAudio.src) {
+        if (localAudio.paused) localAudio.play().catch(e=>{});
+        gsap.to(localAudio, { volume: bgmVolume, duration: 1 });
+        return;
+    }
+    let fadeOutDuration = (localAudio.src && !localAudio.paused) ? 1 : 0;
+
+    gsap.to(localAudio, {
+        volume: 0,
+        duration: fadeOutDuration,
+        onComplete: () => {
+            if (isShuffleMode) return; 
+            currentMusicKey = k;
+            localAudio.volume = 0;
+            
+            const playAndFadeIn = (songId, songData) => {
+                if (isShuffleMode) return;
+                executePlayMusic(songId, songData);
+                localAudio.volume = 0; // Ép về 0 để chuyển bài mượt
+                gsap.to(localAudio, { volume: bgmVolume, duration: 1.5, ease: "power1.inOut" });
+            };
+            if(MUSIC_LIBRARY_DEFAULTS[k]) {
+                playAndFadeIn(k, MUSIC_LIBRARY_DEFAULTS[k].data || '');
+            } else {
+                getSongDataFromDB(k).then(d => { if(d) playAndFadeIn(k, d.data || ''); });
+            }
+        }
+    });
+}
+
+function executePlayMusic(k, d) {
+    if(!d || d.includes('[[')) { document.getElementById('custom-player-ui').style.display = 'none'; localAudio.pause(); return; }
+    document.getElementById('custom-player-ui').style.display = 'flex';
+    gsap.killTweensOf(localAudio); 
+    localAudio.volume = bgmVolume;
+
+    localAudio.pause();
+    localAudio.loop = !isShuffleMode;
+    currentPlaybackSpeed = 1.0;
+    if(document.getElementById('speed-dragger')) document.getElementById('speed-dragger').innerText = "1.0x";
+    startProgressTimer();
+    try {
+        const isUrlOrPath = d.startsWith('http://') || d.startsWith('https://') || d.startsWith('data:') || d.startsWith('./') || d.startsWith('/');
+        if(isUrlOrPath) {
+            localAudio.src = new URL(d, window.location.href).href;
+            localAudio.play().catch(e => {});
+        } else {
+            const byteChars = atob(d);
+            const byteNums = new Array(byteChars.length);
+            for (let i = 0; i < byteChars.length; i++) byteNums[i] = byteChars.charCodeAt(i);
+            localAudio.src = URL.createObjectURL(new Blob([new Uint8Array(byteNums)], {type: 'audio/mp3'}));
+            localAudio.play().catch(e => {});
+        }
+    } catch(e) {
+        document.getElementById('custom-player-ui').style.display = 'none';
+    }
+}
+	
 </script>
 
 </body>
 
 </html>
+
 
 

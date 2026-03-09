@@ -158,6 +158,17 @@ body { background-color: var(--game-bg-color); background-image: url('./image/Lo
 </style>
 </head>
 <body>
+<div id="welcome-modal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 9999; font-family: 'Arial', sans-serif;">
+    <div style="background: white; padding: 30px; border-radius: 20px; text-align: center; width: 80%; max-width: 400px; box-shadow: 0 0 20px #ff4d4d;">
+        <h2 style="color: #ff4d4d; margin-bottom: 15px;">Chào Công Chúa! ❤️</h2>
+        <p style="color: #333; line-height: 1.6; margin-bottom: 25px;">
+            Anh có một bất ngờ nhỏ dành cho em. Hãy bật loa lên và nhấn nút bên dưới để bắt đầu nhé!
+        </p>
+        <button id="close-modal-btn" style="background: #ff4d4d; color: white; border: none; padding: 12px 30px; border-radius: 50px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s;">
+            Mở Quà Ngay 🎁
+        </button>
+    </div>
+</div>
 <div id="bg-overlay"></div>
 <div id="water-drop-fx"></div>
 <div id="glow-transition"></div>
@@ -235,7 +246,7 @@ body { background-color: var(--game-bg-color); background-image: url('./image/Lo
 
 <div class="fullscreen-overlay" id="overlay-custom-alert"><div class="dialog-box" style="text-align: center;"><h2 style="color:var(--game-text-color); margin-bottom:20px; font-size: 26px; text-shadow: 0 0 10px var(--game-text-color);" id="alert-title"></h2><p style="font-size: 16px; line-height: 1.6; color: #fff; margin-bottom: 20px;" id="alert-text"></p><button class="btn-core ui-btn" style="width:100%; height:50px; font-size:16px;" id="alert-btn"></button></div></div>
 <div class="fullscreen-overlay" id="overlay-secret-1"><div class="dialog-box" style="text-align: center;"><h2 style="color:var(--game-text-color); margin-bottom:20px; font-size: 26px; text-shadow: 0 0 10px var(--game-text-color);">BÍ MẬT NHỎ!</h2><p style="font-size: 16px; line-height: 1.6; color: #fff; margin-bottom: 30px;">ú oàaaa, giỏi quá ta chơi cũng lâu phết ha, thấy game này code oke hong, à quên bí mật ở sau nút bấm ở dưới nè nhấp vào i</p><button class="btn-core ui-btn" style="width:100%; height:60px; font-size:20px; background:#ff4757; color:#fff; box-shadow:0 8px 0px #bd2f3c;" onclick="openSecret2()">luv u</button></div></div>
-<div class="fullscreen-overlay" id="overlay-secret-2"><div style="position: relative; width: 100vw; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 10vh;"><div class="ltkh-heart"></div><div class="ltkh-text-box"><div class="ltkh-text" id="scroll-txt">Cảm ơn em vì đã luôn ở bên anh suốt thời gian qua.<br><br>Từ những ngày đầu gặp gỡ, anh đã biết mình thật may mắn khi có em trong đời.<br><br>Cảm ơn em vì đã luôn thấu hiểu, cảm thông cho những lúc anh bận rộn hay vô tâm.<br><br>Dù mình có yêu xa, dù thỉnh thoảng có những cãi vã nhỏ, nhưng tình cảm anh dành cho em chưa bao giờ thay đổi.<br><br>Anh hy vọng đoạn code nhỏ này sẽ làm em mỉm cười.<br><br>Anh không phải là người quá lãng mạn bằng lời nói, nhưng anh luôn cố gắng dùng hành động để chứng minh.<br><br>Mong rằng hai đứa mình sẽ tiếp tục nắm tay nhau đi qua những tháng ngày sắp tới.<br><br>Yêu em thật nhiều, cô gái IT xinh đẹp và tài giỏi nhất của anh!</div></div></div></div>
+<div class="fullscreen-overlay" id="overlay-secret-2"><div style="position: relative; width: 100vw; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 10vh;"><div class="ltkh-heart"></div><div class="ltkh-text-box"><div class="ltkh-text" id="scroll-txt">Cảm ơn em vì đã luôn ở bên anh suốt thời gian qua.<br><br>Từ những ngày đầu gặp gỡ, anh đã biết mình thật may mắn khi có em trong đời.<br><br>Cảm ơn em vì đã luôn thấu hiểu, cảm thông cho những lúc anh bận rộn hay vô tâm.<br><br>Dù mình có yêu xa, dù thỉnh thoảng có những cãi vã nhỏ, nhưng tình cảm anh dành cho em chưa bao giờ thay đổi.<br><br>Anh hy vọng đoạn code nhỏ này sẽ làm em mỉm cười.<br><br>Anh không phải là người quá lãng mạn bằng lời nói, nhưng anh luôn cố gắng dùng hành động để chứng minh.<br><br>Mong rằng hai đứa mình sẽ tiếp tục nắm tay nhau đi qua những tháng ngày sắp tới.<br><br>Yêu em thật nhiều, đoá hoa xinh đẹp và tài giỏi nhất của anh!</div></div></div></div>
 <div class="fullscreen-overlay" id="overlay-difficulty"><div class="dialog-box" style="width: 300px; padding: 20px;"><div class="close-btn ui-btn" onclick="closeModal('overlay-difficulty')">✕</div><h2 style="color:var(--game-text-color); text-align:center; margin-bottom:20px;">CHỌN ĐỘ KHÓ</h2><button class="diff-btn diff-1 ui-btn" onclick="selectDifficulty('easy')">SIÊU DỄ</button><button class="diff-btn diff-2 ui-btn" onclick="selectDifficulty('normal')">DỄ DỄ</button><button class="diff-btn diff-3 ui-btn" onclick="selectDifficulty('hard')">KHÓ CHÚT</button><button class="diff-btn diff-4 ui-btn" onclick="selectDifficulty('expert')">SIÊU KHÓ</button></div></div>
 <div class="fullscreen-overlay" id="overlay-names"><div class="dialog-box" style="background: transparent; border: none; box-shadow: none;"><h2 style="color:var(--game-text-color); margin-bottom:25px; font-size: 28px; text-align: center;">Thú Vui Đặt Tên</h2><div class="name-inputs-wrapper" id="name-box"><input type="text" id="player-name-0" placeholder="Tên Át Bích (♠)..."><input type="text" id="player-name-1" placeholder="Tên Át Chuồn (♣)..."><input type="text" id="player-name-2" placeholder="Tên Át Rô (♦)..."><input type="text" id="player-name-3" placeholder="Tên Át Cơ (♥)..."><button class="btn-core ui-btn" id="btn-start-tour" style="width:100%; margin-top:10px; opacity:0;" onclick="confirmPlayerNames()">VÀO TRẬN</button></div></div></div>
 <div class="fullscreen-overlay" id="overlay-card-select"><div class="dialog-box" style="background: transparent; border: none; box-shadow: none; width: 100%; max-width: 400px;"><h2 style="color:var(--game-text-color); margin-bottom:40px; font-size: 32px; text-align: center; text-shadow: 0 0 20px var(--game-text-color);">Chọn Bài Đi Bé</h2><div class="card-select-container"><div class="selectable-card suit-black" onclick="selectCardToRace(0, event)">A♠</div><div class="selectable-card suit-black" onclick="selectCardToRace(1, event)">A♣</div><div class="selectable-card suit-red" onclick="selectCardToRace(2, event)">A♦</div><div class="selectable-card suit-red" onclick="selectCardToRace(3, event)">A♥</div></div><button class="btn-core ui-btn" style="width: 100%; height: 50px; font-size: 16px; margin-top: 50px; background: #4a2135; color: #fff;" onclick="closeModal('overlay-card-select'); document.getElementById('menu-screen').style.display='flex';">QUAY LẠI</button></div></div>
@@ -749,8 +760,21 @@ window.addEventListener("load", () => {
     clearInterval(interval);
     console.log("Finished loading:", (performance.now() - start).toFixed(0), "ms");
 });
-
+	document.getElementById('close-modal-btn').addEventListener('click', function() {
+    document.getElementById('welcome-modal').style.display = 'none';
+    
+    if (typeof initSound === "function") {
+        initSound(); 
+    }
+    
+    const audio = document.querySelector('audio'); 
+    if (audio) {
+        audio.play().catch(e => console.log("Chưa phát được nhạc: ", e));
+    }
+});
+	
 </script>
 
 </body>
+
 </html>

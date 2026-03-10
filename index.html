@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Quân GM Code Game Tặng Em</title>
+<title>Đế Nhất Bình Thiên Hạ</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 <style>
@@ -18,7 +18,7 @@
     --card-black: #2d3436; 
     --card-width: 45px; 
     --card-height: 65px; 
-    --custom-card-back: url('/image/Locket_1772905974882_44.jpg');
+    --custom-card-back: url('./image/Locket_1772905974882_44.jpg');
 }
 * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
 body { background-color: var(--game-bg-color); background-image: url('./image/Locket_1772905858887_49.jpg'); background-position: center; background-size: cover; background-repeat: no-repeat; color: #ffffff; width: 100vw; height: 100vh; overflow: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; transition: background 0.5s ease; }
@@ -44,7 +44,13 @@ body { background-color: var(--game-bg-color); background-image: url('./image/Lo
 @keyframes shakeHover { 0% { transform: scale(1.1) rotate(-3deg); } 50% { transform: scale(1.1) rotate(3deg); } 100% { transform: scale(1.1) rotate(-3deg); } }
 .selectable-card { width: 80px; height: 120px; background: #ffffff; border-radius: 8px; display: flex; justify-content: center; align-items: center; font-size: 38px; font-weight: 900; box-shadow: 0 10px 20px rgba(0,0,0,0.8); cursor: pointer; position: relative; border: 4px solid transparent; filter: brightness(0.4); transition: filter 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease; }
 .selectable-card:hover, .selectable-card:active { filter: brightness(1); animation: shakeHover 0.15s infinite; z-index: 10; box-shadow: 0 15px 30px rgba(255, 153, 204, 0.6); border-color: var(--game-border-color); }
-.selectable-card.suit-black { color: #2d3436; } .selectable-card.suit-red { color: #e74c3c; }
+
+/* CSS cho 4 lá bài bằng hình ảnh */
+.suit-bich { background-image: url('./image/bich.png'); background-size: 100% 100%; background-position: center; color: transparent !important; text-shadow: none !important; }
+.suit-chuon { background-image: url('./image/chuon.png'); background-size: 100% 100%; background-position: center; color: transparent !important; text-shadow: none !important; }
+.suit-ro { background-image: url('./image/ro.png'); background-size: 100% 100%; background-position: center; color: transparent !important; text-shadow: none !important; }
+.suit-co { background-image: url('./image/co.png'); background-size: 100% 100%; background-position: center; color: transparent !important; text-shadow: none !important; }
+
 #water-drop-fx { position: fixed; top: 50%; left: 50%; width: 10px; height: 10px; background: rgba(255, 255, 255, 0.9); border-radius: 50%; transform: translate(-50%, -50%) scale(0); z-index: 25000; pointer-events: none; display: none; }
 .water-drop-active { display: block !important; animation: liquidSplash 0.5s ease-out forwards; }
 @keyframes liquidSplash { 0% { transform: translate(-50%, -50%) scale(0); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(50); opacity: 0; } }
@@ -53,7 +59,6 @@ body { background-color: var(--game-bg-color); background-image: url('./image/Lo
 .visual-grid { display: grid; grid-template-rows: repeat(7, 1fr); width: 100%; height: 100%; position: absolute; inset: 0; }
 .visual-row { display: grid; grid-template-columns: repeat(5, 1fr); border-bottom: 1px solid rgba(255, 255, 255, 0.05); } .visual-cell { border-right: 1px solid rgba(255, 255, 255, 0.05); } .visual-trap-cell { background: rgba(255, 255, 255, 0.02); border-right: none; } #entity-layer { position: absolute; inset: 0; z-index: 10; }
 .card-actor { width: var(--card-width); height: var(--card-height); background: #ffffff; border-radius: 6px; border: 2px solid transparent; position: absolute; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 22px; font-weight: 900; box-shadow: 0 5px 12px rgba(0, 0, 0, 0.7); color: #000000; z-index: 50; }
-.suit-red { color: var(--card-red) !important; } 
 .card-name-tag { position: absolute; top: -20px; font-size: 10px; color: var(--game-text-color); font-weight: 900; text-transform: uppercase; white-space: nowrap; text-shadow: 0px 2px 5px rgba(0,0,0,0.8); }
 .trap-actor { width: var(--card-width); height: var(--card-height); background: #2d1421; border: 2px solid var(--game-border-color); color: var(--game-border-color); border-radius: 5px; position: absolute; display: flex; justify-content: center; align-items: center; font-size: 20px; z-index: 40; }
 .alert-trap { animation: trapSyncGlow 0.4s infinite alternate; cursor: pointer; pointer-events: auto; }
@@ -62,10 +67,7 @@ body { background-color: var(--game-bg-color); background-image: url('./image/Lo
 .deck-wrapper-3d { width: 70px; height: 100px; perspective: 1000px; cursor: pointer; border-radius: 8px; } 
 .deck-rotator { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; will-change: transform; } 
 .deck-card-face { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 8px; border: 3px solid #ffffff; display: flex; justify-content: center; align-items: center; font-size: 40px; }
-.face-back {
-    background-image: url("./image/Locket_1772905974882_44.jpg"); background-size: cover; background-position: center; background-repeat: no-repeat;
-}
-
+.face-back { background-image: var(--custom-card-back); background-size: cover; background-position: center; background-repeat: no-repeat; }
 .face-front { background: #ffffff; color: #000000; transform: rotateY(180deg); } 
 #system-status-msg { color: var(--game-text-color); font-weight: 900; font-size: 13px; text-transform: uppercase; margin-top: 5px; text-shadow: 0px 3px 5px rgba(0,0,0,0.9); text-align: center; height: 35px; width: 100%; display: flex; align-items: center; justify-content: center; padding: 0 10px; }
 .fullscreen-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.96); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 20000; }
@@ -73,7 +75,7 @@ body { background-color: var(--game-bg-color); background-image: url('./image/Lo
 .close-btn { position: absolute; top: 10px; right: 15px; font-size: 24px; color: #aaaaaa; cursor: pointer; font-weight: bold; }
 .victory-headline { font-size: 45px; font-weight: 900; color: var(--game-text-color); text-shadow: 0 0 30px var(--game-text-color); animation: victoryPulseAnim 1s infinite alternate; margin-bottom: 20px; text-align: center; } 
 @keyframes victoryPulseAnim { 0% { transform: scale(1); } 100% { transform: scale(1.1); } } 
-#victory-card-podium { height: 150px; display: flex; justify-content: center; align-items: center; margin: 20px 0; cursor: pointer; } 
+#victory-card-podium { height: 150px; display: flex; justify-content: center; align-items: center; margin: 20px 0; } 
 .winner-card-fx { animation: victoryFloatAnim 2s infinite ease-in-out !important; position: relative; overflow: hidden; box-shadow: 0 0 40px var(--game-border-color) !important; border: 2px solid #ffffff; margin: 0 !important; top: auto !important; left: auto !important; } 
 .winner-card-fx::after { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(to right, transparent, rgba(255,255,255,0.9), transparent); transform: skewX(-20deg); animation: winnerShineLoop 1.5s infinite linear; } 
 @keyframes winnerShineLoop { 0% { left: -150%; } 100% { left: 150%; } } 
@@ -83,14 +85,7 @@ body { background-color: var(--game-bg-color); background-image: url('./image/Lo
 .arcade-container { position: relative; width: 95vw; max-width: 380px; height: 90vh; max-height: 850px; background: #1a0b12; border: 4px solid var(--game-border-color); border-radius: 15px; box-shadow: 0 0 30px rgba(255,153,204,0.3); display: flex; flex-direction: column; overflow: hidden; }
 .game-header-bar { width: 100%; height: 40px; padding: 0 15px; background: #2d1421; border-bottom: 2px solid var(--game-border-color); display: flex; justify-content: space-between; align-items: center; color: var(--game-text-color); font-weight: bold; flex-shrink: 0; z-index: 5; }
 .canvas-area { flex-grow: 1; position: relative; background: #000; display: flex; justify-content: center; align-items: center; overflow: hidden; }
-.canvas-area canvas { 
-    width: 100%; 
-    height: 100%; 
-    object-fit: fill; /* Ép giãn để vừa khít 100% khung, triệt tiêu khoảng lơ lửng */
-    background: #0a0508; 
-    touch-action: none; 
-    display: block;
-}
+.canvas-area canvas { width: 100%; height: 100%; object-fit: fill; background: #0a0508; touch-action: none; display: block; }
 .arcade-controls-panel { height: 190px; flex-shrink: 0; background: #2a111e; border-top: 4px solid var(--game-border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 25px; box-sizing: border-box; padding-bottom: 50px; }
 .dpad-container { display: grid; grid-template-columns: 55px 55px 55px; grid-template-rows: 55px 55px; gap: 8px; pointer-events: auto; }
 .ctrl-btn { background: rgba(255, 153, 204, 0.25); border: 3px solid rgba(255, 153, 204, 0.7); border-radius: 12px !important; color: rgba(255,255,255,0.95); font-size: 28px; display: flex; justify-content: center; align-items: center; user-select: none; touch-action: manipulation; box-shadow: 0 5px 15px rgba(0,0,0,0.8); }
@@ -136,13 +131,6 @@ body { background-color: var(--game-bg-color); background-image: url('./image/Lo
 .tab-btn { flex: 1; padding: 12px 0; background: #4a2135; color: #fff; border: 1px solid var(--game-border-color); border-radius: 8px; font-weight: bold; cursor: pointer; } 
 .tab-btn.active { background: var(--game-btn-color); color: #000; } 
 .tab-content { display: none; text-align: left; font-size: 14px; line-height: 1.6; color: #ffb6c1; } .tab-content.active { display: block; } .rule-hl { color: var(--game-text-color); font-weight: bold; } 
-.ltkh-heart { position: relative; width: 120px; height: 120px; animation: beat 0.8s infinite alternate; margin: 0 auto 40px; flex-shrink: 0; }
-.ltkh-heart:before, .ltkh-heart:after { position: absolute; content: ""; left: 60px; top: 0; width: 60px; height: 100px; background: #ff0040; border-radius: 60px 60px 0 0; transform: rotate(-45deg); transform-origin: 0 100%; box-shadow: 0 0 50px #ff0040; }
-.ltkh-heart:after { left: 0; transform: rotate(45deg); transform-origin: 100% 100%; }
-@keyframes beat { 0% { transform: scale(1); } 100% { transform: scale(1.3); } }
-.ltkh-text-box { flex-grow: 1; overflow: hidden; position: relative; width: 90%; max-width: 450px; mask-image: linear-gradient(to bottom, transparent, black 15%, black 85%, transparent); -webkit-mask-image: linear-gradient(to bottom, transparent, black 15%, black 85%, transparent); }
-.ltkh-text { position: absolute; width: 100%; color: #fff; font-size: 17px; line-height: 2.2; text-align: center; font-weight: bold; text-shadow: 0 0 8px rgba(255,255,255,0.6); top: 100%; }
-@keyframes scrollTxt { 0% { top: 100%; } 100% { top: -150%; } }
 .stealth-player-panel { background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); border: 1px solid rgba(255, 153, 204, 0.3); border-radius: 12px; padding: 12px 15px; margin-top: 15px; display: flex; flex-direction: column; gap: 8px; }
 .stealth-row-1 { display: flex; justify-content: center; align-items: center; gap: 20px; }
 .stealth-row-2 { display: flex; align-items: center; gap: 10px; width: 100%; }
@@ -160,15 +148,14 @@ body { background-color: var(--game-bg-color); background-image: url('./image/Lo
 <body>
 <div id="welcome-modal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 999999 !important; font-family: 'Arial', sans-serif;">
     <div style="background: white; padding: 30px; border-radius: 20px; text-align: center; width: 80%; max-width: 400px; box-shadow: 0 0 20px #ff4d4d;">
-        <h2 style="color: #ff4d4d; margin-bottom: 15px;">Chào Công Chúa! ❤️</h2>
+        <h2 style="color: #ff4d4d; margin-bottom: 15px;">Kính Chào Chư Vị Huynh Đệ! ⚔️</h2>
         <p style="color: #333; line-height: 1.6; margin-bottom: 25px;">
-            Anh có một bất ngờ nhỏ dành cho em. Hãy bật loa lên và nhấn nút bên dưới để bắt đầu nhé!
+            Chào mừng đến với đấu trường Đế Nhất Bình Thiên Hạ. Khởi động nhân phẩm, bật loa lên và nhấn nút bên dưới để tỉ thí nào!
         </p>
         <button id="close-modal-btn" style="background: #ff4d4d; color: white; border: none; padding: 12px 30px; border-radius: 50px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s;">
-            Mở Quà Ngay 🎁
+            Chiến Ngay 🚀
         </button>
     </div>
-</div>
 </div>
 <div id="bg-overlay"></div>
 <div id="water-drop-fx"></div>
@@ -178,7 +165,7 @@ body { background-color: var(--game-bg-color); background-image: url('./image/Lo
 <audio id="local-audio-player" style="display:none;"></audio>
 
 <div id="main-hub-screen" class="screen-container" style="display: flex;">
-    <div class="title-wrapper"><h1 class="title-main">Quân GM<br>Code Game Tặng Em</h1><p class="title-sub">CHỌN TRÒ ĐỂ GIẢI TRÍ NHÉ BÉ</p></div>
+    <div class="title-wrapper"><h1 class="title-main">Đế Nhất<br>Bình Thiên Hạ</h1><p class="title-sub">CHỌN CHIẾN TRƯỜNG ĐỂ SO TÀI</p></div>
     <div class="menu-btn-group">
         <button class="btn-core btn-scale-odd ui-btn" onclick="hubClick('duaxi', this)">ĐUA XÌ</button>
         <button class="btn-core btn-scale-even ui-btn" style="background: cyan; box-shadow: 0 8px 0px #009999, 0 15px 20px rgba(0,0,0,0.6);" onclick="hubClick('minigame', this)">MINI GAMES</button>
@@ -186,7 +173,7 @@ body { background-color: var(--game-bg-color); background-image: url('./image/Lo
 </div>
 
 <div id="menu-screen" class="screen-container">
-    <div class="title-wrapper"><h1 class="title-main">Đua Xì</h1><p class="title-sub">AI VỀ ĐÍCH TRƯỚC?</p></div>
+    <div class="title-wrapper"><h1 class="title-main">Đua Nhân Phẩm</h1><p class="title-sub">AI SẼ LÀ BÁ CHỦ?</p></div>
     <div class="menu-btn-group">
         <button class="btn-core btn-scale-odd ui-btn" onclick="navigateMenu('normal', this)">ĐUA THƯỜNG</button>
         <button class="btn-core btn-scale-even ui-btn" onclick="navigateMenu('tournament', this)">ĐUA GIẢI</button>
@@ -246,20 +233,18 @@ body { background-color: var(--game-bg-color); background-image: url('./image/Lo
 </div>
 
 <div class="fullscreen-overlay" id="overlay-custom-alert"><div class="dialog-box" style="text-align: center;"><h2 style="color:var(--game-text-color); margin-bottom:20px; font-size: 26px; text-shadow: 0 0 10px var(--game-text-color);" id="alert-title"></h2><p style="font-size: 16px; line-height: 1.6; color: #fff; margin-bottom: 20px;" id="alert-text"></p><button class="btn-core ui-btn" style="width:100%; height:50px; font-size:16px;" id="alert-btn"></button></div></div>
-<div class="fullscreen-overlay" id="overlay-secret-1"><div class="dialog-box" style="text-align: center;"><h2 style="color:var(--game-text-color); margin-bottom:20px; font-size: 26px; text-shadow: 0 0 10px var(--game-text-color);">BÍ MẬT NHỎ!</h2><p style="font-size: 16px; line-height: 1.6; color: #fff; margin-bottom: 30px;">ú oàaaa, giỏi quá ta chơi cũng lâu phết ha, thấy game này code oke hong, à quên bí mật ở sau nút bấm ở dưới nè nhấp vào i</p><button class="btn-core ui-btn" style="width:100%; height:60px; font-size:20px; background:#ff4757; color:#fff; box-shadow:0 8px 0px #bd2f3c;" onclick="openSecret2()">luv u</button></div></div>
-<div class="fullscreen-overlay" id="overlay-secret-2"><div style="position: relative; width: 100vw; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 10vh;"><div class="ltkh-heart"></div><div class="ltkh-text-box"><div class="ltkh-text" id="scroll-txt">Cảm ơn em vì đã luôn ở bên anh suốt thời gian qua.<br><br>Từ những ngày đầu gặp gỡ, anh đã biết mình thật may mắn khi có em trong đời.<br><br>Cảm ơn em vì đã luôn thấu hiểu, cảm thông cho những lúc anh bận rộn hay vô tâm.<br><br>Dù mình có yêu xa, dù thỉnh thoảng có những cãi vã nhỏ, nhưng tình cảm anh dành cho em chưa bao giờ thay đổi.<br><br>Anh hy vọng đoạn code nhỏ này sẽ làm em mỉm cười.<br><br>Anh không phải là người quá lãng mạn bằng lời nói, nhưng anh luôn cố gắng dùng hành động để chứng minh.<br><br>Mong rằng hai đứa mình sẽ tiếp tục nắm tay nhau đi qua những tháng ngày sắp tới.<br><br>Yêu em thật nhiều, đoá hoa xinh đẹp và tài giỏi nhất của anh!</div></div></div></div>
 <div class="fullscreen-overlay" id="overlay-difficulty"><div class="dialog-box" style="width: 300px; padding: 20px;"><div class="close-btn ui-btn" onclick="closeModal('overlay-difficulty')">✕</div><h2 style="color:var(--game-text-color); text-align:center; margin-bottom:20px;">CHỌN ĐỘ KHÓ</h2><button class="diff-btn diff-1 ui-btn" onclick="selectDifficulty('easy')">SIÊU DỄ</button><button class="diff-btn diff-2 ui-btn" onclick="selectDifficulty('normal')">DỄ DỄ</button><button class="diff-btn diff-3 ui-btn" onclick="selectDifficulty('hard')">KHÓ CHÚT</button><button class="diff-btn diff-4 ui-btn" onclick="selectDifficulty('expert')">SIÊU KHÓ</button></div></div>
-<div class="fullscreen-overlay" id="overlay-names"><div class="dialog-box" style="background: transparent; border: none; box-shadow: none;"><h2 style="color:var(--game-text-color); margin-bottom:25px; font-size: 28px; text-align: center;">Thú Vui Đặt Tên</h2><div class="name-inputs-wrapper" id="name-box"><input type="text" id="player-name-0" placeholder="Tên Át Bích (♠)..."><input type="text" id="player-name-1" placeholder="Tên Át Chuồn (♣)..."><input type="text" id="player-name-2" placeholder="Tên Át Rô (♦)..."><input type="text" id="player-name-3" placeholder="Tên Át Cơ (♥)..."><button class="btn-core ui-btn" id="btn-start-tour" style="width:100%; margin-top:10px; opacity:0;" onclick="confirmPlayerNames()">VÀO TRẬN</button></div></div></div>
-<div class="fullscreen-overlay" id="overlay-card-select"><div class="dialog-box" style="background: transparent; border: none; box-shadow: none; width: 100%; max-width: 400px;"><h2 style="color:var(--game-text-color); margin-bottom:40px; font-size: 32px; text-align: center; text-shadow: 0 0 20px var(--game-text-color);">Chọn Bài Đi Bé</h2><div class="card-select-container"><div class="selectable-card suit-black" onclick="selectCardToRace(0, event)">A♠</div><div class="selectable-card suit-black" onclick="selectCardToRace(1, event)">A♣</div><div class="selectable-card suit-red" onclick="selectCardToRace(2, event)">A♦</div><div class="selectable-card suit-red" onclick="selectCardToRace(3, event)">A♥</div></div><button class="btn-core ui-btn" style="width: 100%; height: 50px; font-size: 16px; margin-top: 50px; background: #4a2135; color: #fff;" onclick="closeModal('overlay-card-select'); document.getElementById('menu-screen').style.display='flex';">QUAY LẠI</button></div></div>
+<div class="fullscreen-overlay" id="overlay-names"><div class="dialog-box" style="background: transparent; border: none; box-shadow: none;"><h2 style="color:var(--game-text-color); margin-bottom:25px; font-size: 28px; text-align: center;">Thú Vui Đặt Tên</h2><div class="name-inputs-wrapper" id="name-box"><input type="text" id="player-name-0" placeholder="Tên Quân Bích..."><input type="text" id="player-name-1" placeholder="Tên Quân Chuồn..."><input type="text" id="player-name-2" placeholder="Tên Quân Rô..."><input type="text" id="player-name-3" placeholder="Tên Quân Cơ..."><button class="btn-core ui-btn" id="btn-start-tour" style="width:100%; margin-top:10px; opacity:0;" onclick="confirmPlayerNames()">VÀO TRẬN</button></div></div></div>
+<div class="fullscreen-overlay" id="overlay-card-select"><div class="dialog-box" style="background: transparent; border: none; box-shadow: none; width: 100%; max-width: 400px;"><h2 style="color:var(--game-text-color); margin-bottom:40px; font-size: 32px; text-align: center; text-shadow: 0 0 20px var(--game-text-color);">Chọn Tướng Đi Anh Em</h2><div class="card-select-container"><div class="selectable-card suit-bich" onclick="selectCardToRace(0, event)"></div><div class="selectable-card suit-chuon" onclick="selectCardToRace(1, event)"></div><div class="selectable-card suit-ro" onclick="selectCardToRace(2, event)"></div><div class="selectable-card suit-co" onclick="selectCardToRace(3, event)"></div></div><button class="btn-core ui-btn" style="width: 100%; height: 50px; font-size: 16px; margin-top: 50px; background: #4a2135; color: #fff;" onclick="closeModal('overlay-card-select'); document.getElementById('menu-screen').style.display='flex';">QUAY LẠI</button></div></div>
 <div class="fullscreen-overlay" id="overlay-victory"><h1 class="victory-headline" id="victory-headline"></h1><div id="victory-card-podium"></div><h2 id="victory-player-name"></h2><div class="btn-row"><button class="btn-core ui-btn" style="width:130px; height:55px; font-size:16px;" onclick="playAgain()">CHƠI LẠI</button><button class="btn-core ui-btn" style="width:130px; height:55px; font-size:14px; background:#4a2135; color:#fff;" onclick="quitToScreen('menu-screen')">MENU</button></div></div>
-<div class="fullscreen-overlay" id="overlay-love-message"><div class="dialog-box" style="text-align: center;"><h2 style="color:var(--game-text-color); margin-bottom:20px; font-size: 26px; text-shadow: 0 0 10px var(--game-text-color);" id="love-title"></h2><p style="font-size: 16px; line-height: 1.6; color: #fff; margin-bottom: 25px;" id="love-content"></p><button class="btn-core ui-btn" style="width:100%; height:50px; font-size:16px; background:#4a2135; color:#fff;" onclick="closeLoveMsg()">hihi</button></div></div>
 <div class="fullscreen-overlay" id="overlay-settings"><div class="dialog-box"><div class="close-btn ui-btn" onclick="closeModal('overlay-settings')">✕</div><h2 style="color:var(--game-text-color); text-align:center; margin-bottom:20px;">TÙY CHỈNH</h2><div class="settings-row"><span>Nhạc Nền (BGM)</span><input type="range" id="vol-bgm" min="0" max="1" step="0.05" value="0.5"></div><div class="settings-row"><span>Âm Thanh (SFX)</span><input type="range" id="vol-sfx" min="0" max="1" step="0.05" value="0.7"></div><hr style="border:0.5px solid #4a2135; margin-bottom:12px;"><div class="settings-row"><span>Nền Web</span><input type="color" id="cfg-bg" value="#1a0b12"></div><div class="settings-row"><span>Bàn Cờ</span><input type="color" id="cfg-board" value="#2d1421"></div><div class="settings-row"><span>Viền Bảng</span><input type="color" id="cfg-border" value="#ff99cc"></div><div class="settings-row"><span>Màu Chữ</span><input type="color" id="cfg-text" value="#ffb6c1"></div><div class="settings-row"><span>Nút Bấm</span><input type="color" id="cfg-btn" value="#ff99cc"></div><hr style="border:0.5px solid #4a2135; margin-bottom:12px;"><div class="settings-row"><span>HÌNH NỀN</span><label class="file-label" id="lbl-bg"><span id="txt-bg">CHỌN ẢNH</span><input type="file" id="upload-bg" hidden accept="image/*" onchange="updateFileLabel('upload-bg', 'txt-bg', 'lbl-bg')"></label></div><div class="settings-row"><span>MẶT ÚP BÀI</span><label class="file-label" id="lbl-card"><span id="txt-card">CHỌN ẢNH</span><input type="file" id="upload-card" hidden accept="image/*" onchange="updateFileLabel('upload-card', 'txt-card', 'lbl-card')"></label></div><div style="display:flex; gap:8px; margin-top:15px;"><button class="btn-core ui-btn" style="width:33.3%; height:40px; font-size:12px; background:#4a69bd; color:#fff; box-shadow:none;" onclick="openModal('overlay-rules')">LUẬT</button><button class="btn-core ui-btn" style="width:33.3%; height:40px; font-size:12px; background:#e74c3c; color:#fff; box-shadow:none;" onclick="clearSavedData()">XÓA DATA</button><button class="btn-core ui-btn" style="width:33.3%; height:40px; font-size:12px; background:#555; color:#fff; box-shadow:none;" onclick="quitToScreen('main-hub-screen'); closeModal('overlay-settings'); playMasterMusic('menu');">MENU</button></div><button class="btn-core ui-btn" id="btn-save-settings" style="width:100%; height:50px; font-size:18px; margin-top:15px;" onclick="executeSaveSettings()">LƯU CÀI ĐẶT</button><button class="btn-core ui-btn" style="width:100%; height:40px; margin-top:10px; background:#e67e22; color:#fff; font-size:14px; box-shadow:none;" onclick="openMusicLibraryModal()">🎵 KHO NHẠC</button></div></div>
 <div class="fullscreen-overlay" id="overlay-music-lib"><div class="dialog-box" style="width: 380px;"><h2 style="color:var(--game-text-color); text-align:center; margin-bottom:5px;">🎵 KHO NHẠC</h2><div class="pagination-container" id="music-pagination"></div><div class="music-carousel-wrapper" id="music-carousel"></div><div class="stealth-player-panel" id="custom-player-ui" style="display: none;"><div class="stealth-row-1"><button class="stealth-btn ui-btn" onclick="globalSeekRelative(-10)">-10</button><button class="stealth-btn btn-play-stealth ui-btn" id="btn-play-pause" onclick="globalTogglePlayPause()">▶</button><button class="stealth-btn ui-btn" onclick="globalSeekRelative(10)">+10</button></div><div class="stealth-row-2"><span class="stealth-time" id="current-time">00:00</span><input type="range" id="music-seek-bar" class="stealth-seek" min="0" max="100" value="0" oninput="globalManualSeek(this.value)"><span class="stealth-time" id="duration-time">00:00</span><div id="speed-dragger" class="speed-drag-box" title="Vuốt ngang để đổi tốc độ">1.0x</div></div></div><p style="font-size:11px; color:#ffb6c1; text-align:center; margin:10px 0;"><b style="color:#ff99cc">[M]</b>: Nhạc Menu | <b style="color:cyan">[G]</b>: Nhạc Game | <b style="color:#2ecc71">[∞]</b>: Cả Hai</p><div class="music-actions-grid"><div class="music-actions-row"><button class="btn-core ui-btn" id="btn-shuffle-music" style="width:48%; height:40px; font-size:13px; background:#2d1421; color:#ffb6c1; box-shadow:0 5px 0 #1a0b12;" onclick="toggleShuffleMode()">TRÁO NHẠC</button><label class="btn-core ui-btn" style="width:48%; height:40px; font-size:12px; cursor:pointer; display:flex; justify-content:center; align-items:center; color:#000;"><span id="upload-music-txt">TẢI NHẠC LÊN</span><input type="file" id="upload-music-input" hidden accept="audio/*" onchange="handleMusicUpload(event)"></label></div><div class="music-actions-row"><button class="btn-core ui-btn" id="btn-delete-music" style="width:48%; height:40px; font-size:13px; background:#4a2135; color:#ffb6c1; box-shadow:0 5px 0 #2d1421;" onclick="toggleDeleteMode()">XÓA NHẠC</button><button class="btn-core ui-btn" style="width:48%; height:40px; font-size:14px;" onclick="closeMusicModal()">ĐÃ XONG</button></div></div></div></div>
 <div class="fullscreen-overlay" id="overlay-name-input"><div class="dialog-box" style="width: 340px;"><h2 style="color:var(--game-text-color); text-align:center; margin-bottom:20px;">TÊN BÀI HÁT</h2><input type="text" id="custom-song-name" class="custom-input-field" placeholder="Tên bài hát..."><div style="display:flex; gap:10px;"><button class="btn-core ui-btn" style="width:40%; height:45px; font-size:14px; background:#4a2135; color:#fff;" onclick="cancelMusicUpload()">HỦY</button><button class="btn-core ui-btn" style="width:60%; height:45px; font-size:14px;" onclick="confirmMusicUpload()">LƯU</button></div></div></div>
-<div class="fullscreen-overlay" id="overlay-rules"><div class="dialog-box"><div class="close-btn ui-btn" onclick="closeModal('overlay-rules')">✕</div><h2 style="color:var(--game-text-color); text-align:center; margin-bottom:20px;">CẨM NANG</h2><div class="tab-btn-group"><button class="tab-btn active ui-btn" id="btn-tab-luat" onclick="switchTab('luat')">LUẬT GAME</button><button class="tab-btn ui-btn" id="btn-tab-choi" onclick="switchTab('choi')">CÁCH CHƠI</button></div><div class="tab-content active" id="tab-luat"><p style="margin-bottom: 10px; color: #ff4757; font-weight: bold;">LUẬT PHẠT 3 LÁ:</p><p style="margin-bottom: 15px;">Rút liên tiếp 3 lá cùng chất thì phạt lùi 2 ô.</p><p style="margin-bottom: 10px; color: #ff4757; font-weight: bold;">LUẬT BLOCK (PHẠT CẶP):</p><ul style="padding-left: 15px; margin-top: 5px;"><li><span class="rule-hl">TH1:</span> ♣♣ - ♦♦ - ♣♣ -> Phạt ♣ 1 ô.</li><li><span class="rule-hl">TH3:</span> ♣♣ - ♦♦ - ♣♣ - ♦♦ -> Phạt cả hai.</li><li><span class="rule-hl">TH4:</span> ♣♣ - ♦♦ - ♠ - ♣♣ -> Vẫn phạt ♣ 1 ô.</li><li><span class="rule-hl">TH5:</span> ♣♣ - ♦♦ - ♠♠ - ♣♣ -> Hợp lệ.</li></ul></div><div class="tab-content" id="tab-choi"><p style="margin-bottom: 10px;"><span class="rule-hl">Mục tiêu:</span> Đưa quân Át về đích.</p><p style="margin-bottom: 10px;"><span class="rule-hl">Bị Phạt:</span> Bộ bài nháy đỏ. Chạm vào lá bài nháy đỏ để lùi.</p><p style="margin-bottom: 10px;"><span class="rule-hl">Cột Bẫy (?):</span> Khi 4 lá vượt bẫy -> bẫy nháy. Chạm mở: Không trùng (Lùi 1), Trùng 3 (Tiến 2), Trùng 4 (Tiến 1).</p></div></div></div>
+<div class="fullscreen-overlay" id="overlay-rules"><div class="dialog-box"><div class="close-btn ui-btn" onclick="closeModal('overlay-rules')">✕</div><h2 style="color:var(--game-text-color); text-align:center; margin-bottom:20px;">CẨM NANG</h2><div class="tab-btn-group"><button class="tab-btn active ui-btn" id="btn-tab-luat" onclick="switchTab('luat')">LUẬT GAME</button><button class="tab-btn ui-btn" id="btn-tab-choi" onclick="switchTab('choi')">CÁCH CHƠI</button></div><div class="tab-content active" id="tab-luat"><p style="margin-bottom: 10px; color: #ff4757; font-weight: bold;">LUẬT PHẠT 3 LÁ:</p><p style="margin-bottom: 15px;">Rút liên tiếp 3 lá cùng chất thì phạt lùi 2 ô.</p><p style="margin-bottom: 10px; color: #ff4757; font-weight: bold;">LUẬT BLOCK (PHẠT CẶP):</p><ul style="padding-left: 15px; margin-top: 5px;"><li><span class="rule-hl">TH1:</span> ♣♣ - ♦♦ - ♣♣ -> Phạt ♣ 1 ô.</li><li><span class="rule-hl">TH3:</span> ♣♣ - ♦♦ - ♣♣ - ♦♦ -> Phạt cả hai.</li><li><span class="rule-hl">TH4:</span> ♣♣ - ♦♦ - ♠ - ♣♣ -> Vẫn phạt ♣ 1 ô.</li><li><span class="rule-hl">TH5:</span> ♣♣ - ♦♦ - ♠♠ - ♣♣ -> Hợp lệ.</li></ul></div><div class="tab-content" id="tab-choi"><p style="margin-bottom: 10px;"><span class="rule-hl">Mục tiêu:</span> Đưa quân cờ về đích.</p><p style="margin-bottom: 10px;"><span class="rule-hl">Bị Phạt:</span> Bộ bài nháy đỏ. Chạm vào lá bài nháy đỏ để lùi.</p><p style="margin-bottom: 10px;"><span class="rule-hl">Cột Bẫy (?):</span> Khi 4 lá vượt bẫy -> bẫy nháy. Chạm mở: Không trùng (Lùi 1), Trùng 3 (Tiến 2), Trùng 4 (Tiến 1).</p></div></div></div>
 
 <script>
-let progressInterval; let currentPlaybackSpeed = 1.0; const localAudio = document.getElementById('local-audio-player'); let audioCtx; let bgmVolume = parseFloat(localStorage.getItem('vol_bgm')) || 0.5; let sfxVolume = parseFloat(localStorage.getItem('vol_sfx')) || 0.7; let s_msg = 0, s_trp = false, s_pen = false, s_unl = false, s_tc = 0; function $(id) { return document.getElementById(id); } function openModal(id) { $(id).style.display = 'flex'; } function closeModal(id) { $(id).style.display = 'none'; } function switchTab(t) { ['luat','choi'].forEach(function(i) { $(`btn-tab-${i}`).classList.remove('active'); $(`tab-${i}`).classList.remove('active'); }); $(`btn-tab-${t}`).classList.add('active'); $(`tab-${t}`).classList.add('active'); } $('vol-bgm').value = bgmVolume; $('vol-sfx').value = sfxVolume; $('vol-bgm').addEventListener('input', e => { bgmVolume = parseFloat(e.target.value); localAudio.volume = bgmVolume; localStorage.setItem('vol_bgm', bgmVolume);}); $('vol-sfx').addEventListener('input', e => { sfxVolume = parseFloat(e.target.value); localStorage.setItem('vol_sfx', sfxVolume);}); function initSound() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume(); localAudio.volume = bgmVolume; } function playSfx(type) { if (!audioCtx) return; const t = audioCtx.currentTime, gain = audioCtx.createGain(); gain.connect(audioCtx.destination); let v = sfxVolume; if (type === 'flip' || type === 'deal') { const b = audioCtx.createBuffer(1, audioCtx.sampleRate*0.05, audioCtx.sampleRate), d = b.getChannelData(0); for (let i=0; i<d.length; i++) d[i] = Math.random()*2-1; const s = audioCtx.createBufferSource(); s.buffer=b; const f = audioCtx.createBiquadFilter(); f.type='highpass'; f.frequency.value=800; s.connect(f); f.connect(gain); gain.gain.setValueAtTime(v*0.8, t); gain.gain.exponentialRampToValueAtTime(0.01, t+0.05); s.start(t); return; } const osc = audioCtx.createOscillator(); osc.connect(gain); if (type === 'click' || type === 'move') { osc.type='sine'; osc.frequency.setValueAtTime(800,t); osc.frequency.exponentialRampToValueAtTime(100,t+0.05); gain.gain.setValueAtTime(v*0.4,t); gain.gain.exponentialRampToValueAtTime(0.01,t+0.05); osc.start(t); osc.stop(t+0.05); } else if (type === 'eat' || type === 'shoot') { osc.type='square'; osc.frequency.setValueAtTime(400,t); osc.frequency.exponentialRampToValueAtTime(800,t+0.1); gain.gain.setValueAtTime(v*0.1,t); gain.gain.exponentialRampToValueAtTime(0.01,t+0.1); osc.start(t); osc.stop(t+0.1); } else if (type === 'boom' || type === 'error') { osc.type='sawtooth'; osc.frequency.setValueAtTime(150,t); osc.frequency.exponentialRampToValueAtTime(50,t+0.3); gain.gain.setValueAtTime(v*0.4,t); gain.gain.linearRampToValueAtTime(0.01,t+0.3); osc.start(t); osc.stop(t+0.3); } else if (type === 'warn') { osc.type='square'; osc.frequency.setValueAtTime(1200,t); osc.frequency.exponentialRampToValueAtTime(600,t+0.1); gain.gain.setValueAtTime(v*0.2,t); gain.gain.exponentialRampToValueAtTime(0.01,t+0.1); osc.start(t); osc.stop(t+0.1); } else if (type === 'win') { osc.type='square'; osc.frequency.setValueAtTime(440,t); osc.frequency.setValueAtTime(554.37,t+0.1); osc.frequency.setValueAtTime(659.25,t+0.2); osc.frequency.setValueAtTime(880,t+0.3); gain.gain.setValueAtTime(v*0.3,t); gain.gain.linearRampToValueAtTime(0.01,t+0.6); osc.start(t); osc.stop(t+0.6); } else if (type === 'lose') { osc.type='triangle'; osc.frequency.setValueAtTime(392,t); osc.frequency.setValueAtTime(369,t+0.25); gain.gain.setValueAtTime(v*0.5,t); gain.gain.linearRampToValueAtTime(0.01,t+2); osc.start(t); osc.stop(t+2); } else if (type === 'ting') { osc.type='sine'; osc.frequency.setValueAtTime(1500,t); gain.gain.setValueAtTime(v*0.15,t); gain.gain.exponentialRampToValueAtTime(0.01,t+0.1); osc.start(t); osc.stop(t+0.1); } else if (type === 'swoosh') { osc.type='sine'; osc.frequency.setValueAtTime(250,t); gain.gain.setValueAtTime(v*0.1,t); gain.gain.linearRampToValueAtTime(0.01,t+0.4); osc.start(t); osc.stop(t+0.4); } }
+let progressInterval; let currentPlaybackSpeed = 1.0; const localAudio = document.getElementById('local-audio-player'); let audioCtx; let bgmVolume = parseFloat(localStorage.getItem('vol_bgm')) || 0.5; let sfxVolume = parseFloat(localStorage.getItem('vol_sfx')) || 0.7; 
+function $(id) { return document.getElementById(id); } function openModal(id) { $(id).style.display = 'flex'; } function closeModal(id) { $(id).style.display = 'none'; } function switchTab(t) { ['luat','choi'].forEach(function(i) { $(`btn-tab-${i}`).classList.remove('active'); $(`tab-${i}`).classList.remove('active'); }); $(`btn-tab-${t}`).classList.add('active'); $(`tab-${t}`).classList.add('active'); } $('vol-bgm').value = bgmVolume; $('vol-sfx').value = sfxVolume; $('vol-bgm').addEventListener('input', e => { bgmVolume = parseFloat(e.target.value); localAudio.volume = bgmVolume; localStorage.setItem('vol_bgm', bgmVolume);}); $('vol-sfx').addEventListener('input', e => { sfxVolume = parseFloat(e.target.value); localStorage.setItem('vol_sfx', sfxVolume);}); function initSound() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume(); localAudio.volume = bgmVolume; } function playSfx(type) { if (!audioCtx) return; const t = audioCtx.currentTime, gain = audioCtx.createGain(); gain.connect(audioCtx.destination); let v = sfxVolume; if (type === 'flip' || type === 'deal') { const b = audioCtx.createBuffer(1, audioCtx.sampleRate*0.05, audioCtx.sampleRate), d = b.getChannelData(0); for (let i=0; i<d.length; i++) d[i] = Math.random()*2-1; const s = audioCtx.createBufferSource(); s.buffer=b; const f = audioCtx.createBiquadFilter(); f.type='highpass'; f.frequency.value=800; s.connect(f); f.connect(gain); gain.gain.setValueAtTime(v*0.8, t); gain.gain.exponentialRampToValueAtTime(0.01, t+0.05); s.start(t); return; } const osc = audioCtx.createOscillator(); osc.connect(gain); if (type === 'click' || type === 'move') { osc.type='sine'; osc.frequency.setValueAtTime(800,t); osc.frequency.exponentialRampToValueAtTime(100,t+0.05); gain.gain.setValueAtTime(v*0.4,t); gain.gain.exponentialRampToValueAtTime(0.01,t+0.05); osc.start(t); osc.stop(t+0.05); } else if (type === 'eat' || type === 'shoot') { osc.type='square'; osc.frequency.setValueAtTime(400,t); osc.frequency.exponentialRampToValueAtTime(800,t+0.1); gain.gain.setValueAtTime(v*0.1,t); gain.gain.exponentialRampToValueAtTime(0.01,t+0.1); osc.start(t); osc.stop(t+0.1); } else if (type === 'boom' || type === 'error') { osc.type='sawtooth'; osc.frequency.setValueAtTime(150,t); osc.frequency.exponentialRampToValueAtTime(50,t+0.3); gain.gain.setValueAtTime(v*0.4,t); gain.gain.linearRampToValueAtTime(0.01,t+0.3); osc.start(t); osc.stop(t+0.3); } else if (type === 'warn') { osc.type='square'; osc.frequency.setValueAtTime(1200,t); osc.frequency.exponentialRampToValueAtTime(600,t+0.1); gain.gain.setValueAtTime(v*0.2,t); gain.gain.exponentialRampToValueAtTime(0.01,t+0.1); osc.start(t); osc.stop(t+0.1); } else if (type === 'win') { osc.type='square'; osc.frequency.setValueAtTime(440,t); osc.frequency.setValueAtTime(554.37,t+0.1); osc.frequency.setValueAtTime(659.25,t+0.2); osc.frequency.setValueAtTime(880,t+0.3); gain.gain.setValueAtTime(v*0.3,t); gain.gain.linearRampToValueAtTime(0.01,t+0.6); osc.start(t); osc.stop(t+0.6); } else if (type === 'lose') { osc.type='triangle'; osc.frequency.setValueAtTime(392,t); osc.frequency.setValueAtTime(369,t+0.25); gain.gain.setValueAtTime(v*0.5,t); gain.gain.linearRampToValueAtTime(0.01,t+2); osc.start(t); osc.stop(t+2); } else if (type === 'ting') { osc.type='sine'; osc.frequency.setValueAtTime(1500,t); gain.gain.setValueAtTime(v*0.15,t); gain.gain.exponentialRampToValueAtTime(0.01,t+0.1); osc.start(t); osc.stop(t+0.1); } else if (type === 'swoosh') { osc.type='sine'; osc.frequency.setValueAtTime(250,t); gain.gain.setValueAtTime(v*0.1,t); gain.gain.linearRampToValueAtTime(0.01,t+0.4); osc.start(t); osc.stop(t+0.4); } }
 document.addEventListener('click', e => { initSound(); if(e.target.closest('.ui-btn') || e.target.tagName.toLowerCase() === 'button') playSfx('click'); });
 let audioUnlocked = false; 
 document.body.addEventListener('pointerdown', () => { 
@@ -429,7 +414,7 @@ function switchScreen(target, btn) {
     gsap.to(glow, { opacity: 1, duration: 0.3, onComplete: () => { document.querySelectorAll('.screen-container').forEach(el => el.style.display = 'none'); $(target).style.display = 'flex'; gsap.to(glow, { opacity: 0, duration: 0.3, onComplete: () => glow.style.display = 'none' }); } }); 
 }
 function customAlert(title, text, btnText, callback) { $('alert-title').innerText = title; $('alert-text').innerText = text; $('alert-btn').innerText = btnText; $('alert-btn').onclick = function() { closeModal('overlay-custom-alert'); if(callback) callback(); }; openModal('overlay-custom-alert'); }
-function hubClick(type, btn) { if(type === 'duaxi') { customAlert("THÔNG BÁO", "chào mừng bông hồng đẹp nhất thế gian này đến với trò chơi đua xì nháaa, à bật mí nè nếu chơi đủ lâu sẽ có bất ngờ đặt biệt á!!!", "VÀO GAME", () => switchScreen('menu-screen', btn)); } else { customAlert("THÔNG BÁO", "cái này chỉ để giết thời gian hoi, phần chính là ở bên đua xì á. Nếu em có chơi bên đây thì vừa bật nhạc vừa chơi cho đỡ chán, nó nằm ở setting á. Có thể tự thêm nhạc nè.", "OK LUN", () => switchScreen('mini-game-menu-screen', btn)); } }
+function hubClick(type, btn) { if(type === 'duaxi') { customAlert("ĐẤU TRƯỜNG", "Chào mừng các hảo hán đến với đấu trường nhân phẩm Đế Nhất Bình Thiên Hạ. Lên xe và đạp ga thôi!", "VÀO GAME", () => switchScreen('menu-screen', btn)); } else { customAlert("XẢ STRESS", "Khu vực tấu hài cho anh em. Có thể tự up nhạc vào nghe cho xôm trong phần Setting nhé.", "OK LUN", () => switchScreen('mini-game-menu-screen', btn)); } }
 function navigateMainMenu(targetId, btnEl) { switchScreen(targetId, btnEl); }
 function quitToScreen(target) { 
 
@@ -505,7 +490,7 @@ const ChickenGame = (function() {
     return { start: () => { reset(); cancelAnimationFrame(loopId); loopId = requestAnimationFrame(loop); }, stop: () => { isGO = true; cancelAnimationFrame(loopId); } };
 })();
 
-const GameState = { status: 'INIT', gameMode: 'normal', selectedCard: -1, deck: [], suits: ['♠', '♣', '♦', '♥'], suitClasses: ['', '', 'suit-red', 'suit-red'], playerNames: ['Bích', 'Chuồn', 'Rô', 'Cơ'], positions: [6, 6, 6, 6], colMapping: [0, 1, 2, 3], drawHistory: [], trapTargets: [], trapRevealed: [false, false, false, false, false], trapHistory: [] };
+const GameState = { status: 'INIT', gameMode: 'normal', selectedCard: -1, deck: [], suits: ['♠', '♣', '♦', '♥'], suitClasses: ['suit-bich', 'suit-chuon', 'suit-ro', 'suit-co'], playerNames: ['Bích', 'Chuồn', 'Rô', 'Cơ'], positions: [6, 6, 6, 6], colMapping: [0, 1, 2, 3], drawHistory: [], trapTargets: [], trapRevealed: [false, false, false, false, false], trapHistory: [] };
 function buildAndShuffleDeck() { let deck = []; for(let i = 0; i < 4; i++) for(let j = 0; j < 13; j++) deck.push(i); for (let i = deck.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [deck[i], deck[j]] = [deck[j], deck[i]]; } return deck; }
 
 function navigateMenu(m, btn) { 
@@ -625,7 +610,7 @@ function initGameRace() {
 
             let isSelected = (GameState.gameMode === 'normal' && i === GameState.selectedCard), tagColor = 'var(--game-text-color)', tagText = GameState.playerNames[i] + (isSelected ? ' (EM NÈ)' : ''); 
 
-            a.innerHTML = `<div class="card-name-tag" style="color:${tagColor}">${tagText}</div>A${GameState.suits[i]}`; lay.appendChild(a); 
+            a.innerHTML = `<div class="card-name-tag" style="color:${tagColor}; text-shadow: 0 0 5px #000;">${tagText}</div>`; lay.appendChild(a); 
 
             let targetPos = getPercentageCoordinate(6, GameState.colMapping[i]); gsap.set(a, { left: "50%", top: "120%", xPercent: -50, yPercent: -50, scale: 0.5 }); 
 
@@ -644,17 +629,17 @@ function initGameRace() {
 function executeCardDraw() { 
     if(GameState.status !== 'IDLE') return; GameState.status = 'BUSY'; initSound(); playSfx('flip'); 
     if (GameState.deck.length === 0) GameState.deck = buildAndShuffleDeck(); 
-    const idx = GameState.deck.pop(); GameState.drawHistory.push(idx); $('drawn-card-result').innerText = GameState.suits[idx]; $('drawn-card-result').className = `deck-card-face face-front ${GameState.suitClasses[idx]}`; 
+    const idx = GameState.deck.pop(); GameState.drawHistory.push(idx); $('drawn-card-result').innerText = ''; $('drawn-card-result').className = `deck-card-face face-front ${GameState.suitClasses[idx]}`; 
     gsap.to('#deck-rotator-node', { rotationY: 180, duration: 0.4, ease: "power1.inOut", onComplete: () => { GameState.positions[idx]--; let targetPos = getPercentageCoordinate(GameState.positions[idx], GameState.colMapping[idx]); playSfx('move'); gsap.to(`#ace-entity-${idx}`, { left: targetPos.left, top: targetPos.top, duration: 0.4, onComplete: () => gsap.to('#deck-rotator-node', { rotationY: 0, duration: 0.2, onComplete: () => setTimeout(() => checkRules(idx), 100) }) }); }}); 
 }
 
 function checkRules(idx) { 
     const h = GameState.drawHistory, len = h.length; let pSteps = 0, pType = 0; 
-    if(len >= 3 && h[len-1] === idx && h[len-2] === idx && h[len-3] === idx) { pSteps = 2; pType = 3; s_pen = true; } 
+    if(len >= 3 && h[len-1] === idx && h[len-2] === idx && h[len-3] === idx) { pSteps = 2; pType = 3; } 
     else if(len >= 2 && h[len-1] === idx && h[len-2] === idx) { let prevPairIdx = -1; for(let i = len - 3; i >= 1; i--) { if(h[i] === idx && h[i-1] === idx) { prevPairIdx = i - 1; break; } } if(prevPairIdx !== -1 && (len - prevPairIdx - 4) < 4) { pSteps = 1; pType = 2; } } 
     if(pSteps > 0) { 
         GameState.status = 'PENALTY'; playSfx('error'); let isEmNe = (GameState.gameMode === 'normal' && GameState.selectedCard === idx), msg = "";
-        if(pType === 3) msg = isEmNe ? "á à về đích nhanh quá nhá, lùi 2 ô đê" : "cút xuống 2 ô, ăn gian hả, nó ăn gian kìa bé"; else msg = isEmNe ? "ấy chết code nhầm nên lùi 1 ô thoiii" : "mày ăn gian, cút về 1 ô cho bồ tao thắng";
+        if(pType === 3) msg = isEmNe ? "Lái khét quá bóp phanh không kịp, lùi 2 ô!" : "Điêu dân to gan dám chạy nhanh, lùi ngay 2 ô!"; else msg = isEmNe ? "Vấp cỏ ngã, lùi 1 ô cho chừa." : "Tâm ma quấy phá, lùi về 1 ô đi nhóc.";
         $('system-status-msg').innerText = msg; $('system-status-msg').style.color = "#ff4757"; 
         const pCard = $(`ace-entity-${idx}`); pCard.style.zIndex = "1000"; pCard.style.cursor = "pointer"; pCard.style.pointerEvents = "auto"; 
         let pCardFlash = gsap.to(pCard, { boxShadow: "0 0 25px var(--game-border-color)", borderColor: "#ffffff", backgroundColor: "rgba(255, 153, 204, 0.2)", duration: 0.4, yoyo: true, repeat: -1 }); let deckFlash = gsap.to($('deck-wrapper-3d'), { boxShadow: "0 0 40px #ff0000", duration: 0.3, yoyo: true, repeat: -1 });
@@ -671,13 +656,13 @@ function checkTraps(idx) {
     for(let i = 0; i < 5; i++) { 
         if(GameState.positions.every(pos => pos <= (5 - i)) && !GameState.trapRevealed[i]) { 
             GameState.status = 'TRAP'; $('system-status-msg').innerText = "LẬT BÀI ĐÓ ĐI EM"; $('system-status-msg').style.color = "var(--game-text-color)"; 
-            const trapElement = $(`trap-entity-${i}`); trapElement.classList.add('alert-trap'); playSfx('ting'); s_trp = true;
+            const trapElement = $(`trap-entity-${i}`); trapElement.classList.add('alert-trap'); playSfx('ting');
             let trapFlash = gsap.to(trapElement, { boxShadow: "0 0 25px var(--game-border-color)", borderColor: "#ffffff", background: "rgba(255, 153, 204, 0.2)", duration: 0.4, yoyo: true, repeat: -1, onRepeat: () => playSfx('ting') }); 
             trapElement.onclick = function() { 
                 this.onclick = null; this.classList.remove('alert-trap'); trapFlash.kill(); gsap.set(trapElement, { clearProps: "boxShadow,borderColor,backgroundColor" }); playSfx('flip'); 
-                const s = GameState.trapTargets[i]; GameState.trapRevealed[i] = true; GameState.trapHistory.push(s); this.className = `card-actor ${GameState.suitClasses[s]}`; this.innerHTML = `A${GameState.suits[s]}`; 
+                const s = GameState.trapTargets[i]; GameState.trapRevealed[i] = true; GameState.trapHistory.push(s); this.className = `card-actor ${GameState.suitClasses[s]}`; this.innerHTML = ``; 
                 let count = GameState.trapHistory.filter(x => x === s).length, move = (count >= 4) ? 1 : (count === 3 ? 2 : -1), isEmNe = (GameState.gameMode === 'normal' && GameState.selectedCard === s), msg = "";
-                if(move === 1) msg = isEmNe ? "em đẹp em có quyền lên 1 ô" : "thôi lên 1 ô này thì thua đi cho em thắng"; else if(move === 2) msg = isEmNe ? "adu cầm phóng lợn bay lên 2 ô!!!" : "nhờ vận khí của ẻm mày mới lên 2 ô đó"; else msg = isEmNe ? "ô thoi chếc, em bị kéo xuống 1 ô rồi" : "sao ẻm đẹp quá nên ngây ra chứ gì, lùi 1 ô đi";
+                if(move === 1) msg = isEmNe ? "Khinh công bạo phát, phi lên 1 ô!" : "Hack game à? Được lên 1 ô!"; else if(move === 2) msg = isEmNe ? "Bạo kích tuyệt đỉnh! Bay lên 2 ô!!!" : "Ăn hên thôi, lên 2 ô đi kìa."; else msg = isEmNe ? "Trúng độc, nôn máu lùi 1 ô..." : "Nghiệp quật, lùi 1 ô cho anh em nhờ!";
                 $('system-status-msg').innerText = msg; $('system-status-msg').style.color = move > 0 ? "#2ecc71" : "#ff4757"; 
                 setTimeout(() => { if(move < 0) playSfx('error'); else playSfx('move'); GameState.positions[s] = Math.max(0, Math.min(6, GameState.positions[s] - move)); let targetPos = getPercentageCoordinate(GameState.positions[s], GameState.colMapping[s]); gsap.to(`#ace-entity-${s}`, { left: targetPos.left, top: targetPos.top, duration: 0.6, onComplete: () => checkTraps(idx) }); }, 800); 
             }; return; 
@@ -687,62 +672,21 @@ function checkTraps(idx) {
 }
 
 function triggerVictory(idx) { 
-
-    GameState.status = 'WIN'; $('system-status-msg').innerText = "VỀ ĐÍCH RỒI GIỎI QUÁ!"; 
-
+    GameState.status = 'WIN'; $('system-status-msg').innerText = "VỀ ĐÍCH RỒI HẢO HÁN!"; 
     let isPlayer = (GameState.gameMode === 'normal' && GameState.selectedCard === idx), isWin = (GameState.gameMode === 'tournament') || isPlayer; window.currentWinStatus = isWin; let headlineNode = $('victory-headline'); 
-
     
-
     if (isWin) { 
-
-        playSfx('win'); headlineNode.innerText = "BẠN ĐÃ THẮNG!"; headlineNode.style.color = "#ff99cc"; headlineNode.style.textShadow = "0 0 30px #ff99cc"; confetti({ particleCount: 300, spread: 80, origin: { y: 0.6 } }); 
-
+        playSfx('win'); headlineNode.innerText = "CHÂN MỆNH THIÊN TỬ!"; headlineNode.style.color = "#ff99cc"; headlineNode.style.textShadow = "0 0 30px #ff99cc"; confetti({ particleCount: 300, spread: 80, origin: { y: 0.6 } }); 
     } else { 
-
-        playSfx('lose'); headlineNode.innerText = "THUA RÙI :("; headlineNode.style.color = "#e74c3c"; headlineNode.style.textShadow = "0 0 30px #e74c3c"; 
-
+        playSfx('lose'); headlineNode.innerText = "GÀ! RA CHUỒNG CHƠI!"; headlineNode.style.color = "#e74c3c"; headlineNode.style.textShadow = "0 0 30px #e74c3c"; 
     } 
-
     
-
     setTimeout(() => { 
-
         openModal('overlay-victory'); 
-
-        $('victory-player-name').innerText = isWin ? "NHẤP VÀO LÁ BÀI ĐỂ NHẬN THÔNG ĐIỆP NÈ BÉ" : "Đừng Buồn Nha! Nhấp Vào Lá Bài Điiii!!!"; 
-
-        
-
+        $('victory-player-name').innerText = isWin ? "BÁ CÁO THIÊN HẠ: BẠN ĐÃ CHIẾN THẮNG!" : "NHÂN PHẨM QUÁ KÉM, LÀM LẠI ĐI!"; 
         let podium = $('victory-card-podium'); 
-
-        podium.innerHTML = `<div class="card-actor ${GameState.suitClasses[idx]} winner-card-fx" style="position:relative; transform:scale(2); margin:0; cursor:pointer;">A${GameState.suits[idx]}</div>`; 
-
-        podium.onclick = () => { 
-
-            openLoveMessage();
-
-            s_tc++; if(s_tc >= 5) openSecret2(); 
-
-        }; 
-
+        podium.innerHTML = `<div class="card-actor ${GameState.suitClasses[idx]} winner-card-fx" style="position:relative; transform:scale(2); margin:0;"></div>`; 
     }, 1000); 
-
-}
-
-function openLoveMessage() {
-    let isWin = window.currentWinStatus; $('love-title').innerText = isWin ? "CHÚC MỪNG 8/3 BÉ IU" : "ĐỪNG BUỒN NHÉ BÉ"; $('love-content').innerHTML = isWin ? "Dù mình đang yêu xa, không thể trực tiếp ôm em, nhưng trái tim anh lúc nào cũng hướng về em.<br><br>Đợi ngày mình gặp nhau nhé, yêu em! ❤️" : "Thua một ván cờ đâu có sao, bé luôn thắng trong tim anh mà!<br><br>Mọi chuyện buồn phiền rồi sẽ qua thôi, em hãy luôn giữ nụ cười lạc quan nhé. 🥰"; closeModal('overlay-victory'); openModal('overlay-love-message');
-}
-
-function closeLoveMsg() {
-    s_msg++; closeModal('overlay-love-message'); 
-    if(s_msg >= 2 && s_trp && s_pen && !s_unl) { 
-        s_unl = true; openModal('overlay-secret-1'); 
-    } else quitToScreen('menu-screen');
-}
-
-function openSecret2() {
-    closeModal('overlay-secret-1'); openModal('overlay-secret-2'); clearTimeout(window.secretAutoClose); const txt = document.querySelector('.ltkh-text'); txt.style.animation = 'none'; void txt.offsetWidth; txt.style.animation = 'scrollTxt 25s linear forwards'; window.secretAutoClose = setTimeout(() => { setTimeout(() => { closeModal('overlay-secret-2'); navigateMainMenu('main-hub-screen'); playMasterMusic('menu'); }, 1000); }, 25000);
 }
 
 function playAgain() { 
@@ -862,6 +806,3 @@ function executePlayMusic(k, d) {
 </body>
 
 </html>
-
-
-

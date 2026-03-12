@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Quân GM Code Game Tặng Em</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<style>
+:root { 
+    --game-bg-color: #1a0b12; 
+    --game-board-color: #2d1421; 
+    --game-border-color: #ff99cc; 
+    --game-text-color: #ffb6c1; 
+    --game-btn-color: #ff99cc; 
+    --game-btn-shadow: #cc7a9f; 
+    --card-red: #e74c3c; 
+    --card-black: #2d3436; 
+    --card-width: 45px; 
+    --card-height: 65px; 
+    --custom-card-back: url('/image/Locket_1772905974882_44.jpg');
+}
+* { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+body { background-color: var(--game-bg-color); background-image: url('./image/Locket_1772905858887_49.jpg'); background-position: center; background-size: cover; background-repeat: no-repeat; color: #ffffff; width: 100vw; height: 100vh; overflow: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; transition: background 0.5s ease; }
+#bg-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.4); z-index: -1; display: none; }
+.screen-container { position: fixed; inset: 0; display: none; flex-direction: column; justify-content: center; align-items: center; background: radial-gradient(circle at center, rgba(45, 20, 33, 0.95) 0%, #0a0305 100%); z-index: 10000; }
+#main-hub-screen { display: flex; } 
+#game-screen { background: transparent; z-index: 5000; }
+.title-wrapper { text-align: center; margin-bottom: 40px; width: 100%; padding: 0 10px; }
+.title-main { font-size: clamp(28px, 9vw, 42px); font-weight: 900; text-transform: uppercase; background: linear-gradient(90deg, #ff6b81, #ffb6c1, #ffe4e1, #ffb6c1, #ff6b81); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: shineEffect 3s linear infinite, waveEffect 3s ease-in-out infinite; line-height: 1.3; text-shadow: 0px 5px 15px rgba(0, 0, 0, 0.8); display: block; }
+@keyframes shineEffect { to { background-position: 200% center; } }
+@keyframes waveEffect { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+.title-sub { font-size: 13px; color: #ffb6c1; letter-spacing: 6px; margin-top: 15px; font-weight: bold; text-transform: uppercase; }
+.menu-btn-group { display: flex; flex-direction: column; align-items: center; width: 100%; gap: 15px; }
+.btn-core { width: 250px; height: 65px; background: var(--game-btn-color); color: #000000; border: none; border-radius: 35px; font-size: 20px; font-weight: 900; box-shadow: 0 8px 0px var(--game-btn-shadow), 0 15px 20px rgba(0, 0, 0, 0.6); cursor: pointer; transition: all 0.2s; text-transform: uppercase; position: relative; overflow: hidden; display: flex; justify-content: center; align-items: center; text-align: center; }
+.btn-core:active { box-shadow: 0 2px 0px var(--game-btn-shadow), 0 5px 10px rgba(0, 0, 0, 0.6); transform: translateY(6px); }
+.btn-core::after { content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0) 100%); transform: skewX(-25deg); animation: metalShineAnim 6s infinite; }
+@keyframes metalShineAnim { 0% { left: -100%; } 20% { left: 200%; } 100% { left: 200%; } }
+.btn-back-hub { width: 200px; height: 50px; font-size: 16px; background: #4a2135; color: #fff; box-shadow: 0 6px 0px #2d1421, 0 10px 15px rgba(0,0,0,0.5); margin-top: 30px; }
+.btn-back-hub:active { box-shadow: 0 2px 0px #2d1421, 0 5px 10px rgba(0,0,0,0.5); }
+.btn-scale-odd { animation: pulseA 1.5s infinite ease-in-out; } .btn-scale-even { animation: pulseB 1.5s infinite ease-in-out; }
+@keyframes pulseA { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } } @keyframes pulseB { 0%, 100% { transform: scale(1.05); } 50% { transform: scale(1); } }
+.card-select-container { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; justify-items: center; margin: 0 auto; }
+@keyframes shakeHover { 0% { transform: scale(1.1) rotate(-3deg); } 50% { transform: scale(1.1) rotate(3deg); } 100% { transform: scale(1.1) rotate(-3deg); } }
+.selectable-card { width: 80px; height: 120px; background: #ffffff; border-radius: 8px; display: flex; justify-content: center; align-items: center; font-size: 38px; font-weight: 900; box-shadow: 0 10px 20px rgba(0,0,0,0.8); cursor: pointer; position: relative; border: 4px solid transparent; filter: brightness(0.4); transition: filter 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease; }
+.selectable-card:hover, .selectable-card:active { filter: brightness(1); animation: shakeHover 0.15s infinite; z-index: 10; box-shadow: 0 15px 30px rgba(255, 153, 204, 0.6); border-color: var(--game-border-color); }
+.selectable-card.suit-black { color: #2d3436; } .selectable-card.suit-red { color: #e74c3c; }
+#water-drop-fx { position: fixed; top: 50%; left: 50%; width: 10px; height: 10px; background: rgba(255, 255, 255, 0.9); border-radius: 50%; transform: translate(-50%, -50%) scale(0); z-index: 25000; pointer-events: none; display: none; }
+.water-drop-active { display: block !important; animation: liquidSplash 0.5s ease-out forwards; }
+@keyframes liquidSplash { 0% { transform: translate(-50%, -50%) scale(0); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(50); opacity: 0; } }
+#glow-transition { position: fixed; inset: 0; background: var(--game-btn-color); z-index: 24000; opacity: 0; pointer-events: none; display: none; }
+.board-container { width: 95vw; max-width: 360px; aspect-ratio: 2 / 3; height: auto; max-height: 65vh; border: 4px solid var(--game-border-color); background: var(--game-board-color); border-radius: 16px; position: relative; overflow: hidden; box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.8); margin: 0 auto; }
+.visual-grid { display: grid; grid-template-rows: repeat(7, 1fr); width: 100%; height: 100%; position: absolute; inset: 0; }
+.visual-row { display: grid; grid-template-columns: repeat(5, 1fr); border-bottom: 1px solid rgba(255, 255, 255, 0.05); } .visual-cell { border-right: 1px solid rgba(255, 255, 255, 0.05); } .visual-trap-cell { background: rgba(255, 255, 255, 0.02); border-right: none; } #entity-layer { position: absolute; inset: 0; z-index: 10; }
+.card-actor { width: var(--card-width); height: var(--card-height); background: #ffffff; border-radius: 6px; border: 2px solid transparent; position: absolute; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 22px; font-weight: 900; box-shadow: 0 5px 12px rgba(0, 0, 0, 0.7); color: #000000; z-index: 50; }
+.suit-red { color: var(--card-red) !important; } 
+.card-name-tag { position: absolute; top: -20px; font-size: 10px; color: var(--game-text-color); font-weight: 900; text-transform: uppercase; white-space: nowrap; text-shadow: 0px 2px 5px rgba(0,0,0,0.8); }
+.trap-actor { width: var(--card-width); height: var(--card-height); background: #2d1421; border: 2px solid var(--game-border-color); color: var(--game-border-color); border-radius: 5px; position: absolute; display: flex; justify-content: center; align-items: center; font-size: 20px; z-index: 40; }
+.alert-trap { animation: trapSyncGlow 0.4s infinite alternate; cursor: pointer; pointer-events: auto; }
+@keyframes trapSyncGlow { from { box-shadow: 0 0 2px transparent; } to { box-shadow: 0 0 25px var(--game-border-color); border-color: #ffffff; background: rgba(255, 153, 204, 0.2); } }
+.bottom-control-area { margin-top: 15px; display: flex; flex-direction: column; align-items: center; gap: 5px; height: 130px; }
+.deck-wrapper-3d { width: 70px; height: 100px; perspective: 1000px; cursor: pointer; border-radius: 8px; } 
+.deck-rotator { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; will-change: transform; } 
+.deck-card-face { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 8px; border: 3px solid #ffffff; display: flex; justify-content: center; align-items: center; font-size: 40px; }
+.face-back {
+    background-image: url("./image/Locket_1772905974882_44.jpg"); background-size: cover; background-position: center; background-repeat: no-repeat;
+}
+
+.face-front { background: #ffffff; color: #000000; transform: rotateY(180deg); } 
+#system-status-msg { color: var(--game-text-color); font-weight: 900; font-size: 13px; text-transform: uppercase; margin-top: 5px; text-shadow: 0px 3px 5px rgba(0,0,0,0.9); text-align: center; height: 35px; width: 100%; display: flex; align-items: center; justify-content: center; padding: 0 10px; }
+.fullscreen-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.96); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 20000; }
+.dialog-box { position: relative; background: #2d1421; padding: 25px; border-radius: 15px; border: 2px solid var(--game-border-color); width: 360px; max-height: 85vh; overflow-y: auto; } 
+.close-btn { position: absolute; top: 10px; right: 15px; font-size: 24px; color: #aaaaaa; cursor: pointer; font-weight: bold; }
+.victory-headline { font-size: 45px; font-weight: 900; color: var(--game-text-color); text-shadow: 0 0 30px var(--game-text-color); animation: victoryPulseAnim 1s infinite alternate; margin-bottom: 20px; text-align: center; } 
+@keyframes victoryPulseAnim { 0% { transform: scale(1); } 100% { transform: scale(1.1); } } 
+#victory-card-podium { height: 150px; display: flex; justify-content: center; align-items: center; margin: 20px 0; cursor: pointer; } 
+.winner-card-fx { animation: victoryFloatAnim 2s infinite ease-in-out !important; position: relative; overflow: hidden; box-shadow: 0 0 40px var(--game-border-color) !important; border: 2px solid #ffffff; margin: 0 !important; top: auto !important; left: auto !important; } 
+.winner-card-fx::after { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(to right, transparent, rgba(255,255,255,0.9), transparent); transform: skewX(-20deg); animation: winnerShineLoop 1.5s infinite linear; } 
+@keyframes winnerShineLoop { 0% { left: -150%; } 100% { left: 150%; } } 
+@keyframes victoryFloatAnim { 0%, 100% { transform: translateY(0) scale(2); } 50% { transform: translateY(-25px) scale(2.1); } } 
+#victory-player-name { color: #ffffff; font-size: 24px; font-weight: 900; text-transform: uppercase; text-align: center; margin-top: 30px; margin-bottom: 40px; line-height: 1.5; } 
+.btn-row { display: flex; gap: 15px; } 
+.arcade-container { position: relative; width: 95vw; max-width: 380px; height: 90vh; max-height: 850px; background: #1a0b12; border: 4px solid var(--game-border-color); border-radius: 15px; box-shadow: 0 0 30px rgba(255,153,204,0.3); display: flex; flex-direction: column; overflow: hidden; }
+.game-header-bar { width: 100%; height: 40px; padding: 0 15px; background: #2d1421; border-bottom: 2px solid var(--game-border-color); display: flex; justify-content: space-between; align-items: center; color: var(--game-text-color); font-weight: bold; flex-shrink: 0; z-index: 5; }
+.canvas-area { flex-grow: 1; position: relative; background: #000; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+.canvas-area canvas { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: fill; /* Ép giãn để vừa khít 100% khung, triệt tiêu khoảng lơ lửng */
+    background: #0a0508; 
+    touch-action: none; 
+    display: block;
+}
+.arcade-controls-panel { height: 190px; flex-shrink: 0; background: #2a111e; border-top: 4px solid var(--game-border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 25px; box-sizing: border-box; padding-bottom: 50px; }
+.dpad-container { display: grid; grid-template-columns: 55px 55px 55px; grid-template-rows: 55px 55px; gap: 8px; pointer-events: auto; }
+.ctrl-btn { background: rgba(255, 153, 204, 0.25); border: 3px solid rgba(255, 153, 204, 0.7); border-radius: 12px !important; color: rgba(255,255,255,0.95); font-size: 28px; display: flex; justify-content: center; align-items: center; user-select: none; touch-action: manipulation; box-shadow: 0 5px 15px rgba(0,0,0,0.8); }
+.ctrl-btn:active { background: rgba(255, 153, 204, 0.9); transform: scale(0.92); color: #fff; }
+.btn-up-class { grid-column: 2; grid-row: 1; } .btn-left-class { grid-column: 1; grid-row: 2; } .btn-down-class { grid-column: 2; grid-row: 2; } .btn-right-class { grid-column: 3; grid-row: 2; }
+.action-container { display: flex; align-items: flex-end; pointer-events: auto; }
+.btn-a-class { width: 80px; height: 80px; border-radius: 50% !important; background: rgba(255, 153, 204, 0.25); border: 4px solid rgba(255, 153, 204, 0.7); color: rgba(255,255,255,0.95); font-size: 36px; font-weight: bold; box-shadow: 0 5px 15px rgba(0,0,0,0.8); touch-action: manipulation; }
+.btn-a-class:active { background: rgba(255, 153, 204, 0.9); transform: scale(0.9); color: #fff; }
+.game-over-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.85); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 20000; }
+.game-over-text { font-size: 38px; color: #e74c3c; font-weight: 900; text-shadow: 0 0 15px #ff0000; margin-bottom: 10px; text-transform: uppercase; }
+.final-score-text { font-size: 22px; color: #fff; margin-bottom: 30px; font-weight: bold; }
+.custom-input-field { width: 100%; padding: 15px; border-radius: 10px; border: 2px solid #4a2135; background: #1a0b12; color: #ffffff; font-size: 14px; outline: none; text-align: center; margin: 20px 0; transition: border-color 0.3s, box-shadow 0.3s; }
+.custom-input-field:focus { border-color: var(--game-border-color); box-shadow: 0 0 15px var(--game-border-color); }
+.settings-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; color: var(--game-text-color); font-weight: bold; font-size: 14px; } 
+.settings-row input[type="color"] { width: 50px; height: 30px; border: 1px solid #ffffff; background: transparent; cursor: pointer; } 
+.settings-row input[type="range"] { width: 120px; accent-color: var(--game-border-color); } 
+.file-label { background: #4a2135; padding: 5px 10px; border-radius: 5px; cursor: pointer; border: 1px solid var(--game-text-color); font-size: 12px; color: #ffffff; display: inline-block; text-align: center; }
+#settings-trigger-btn { position: fixed; top: 15px; right: 15px; font-size: 28px; z-index: 25000; cursor: pointer; text-shadow: 0 0 10px #000; }
+.music-carousel-wrapper { width: 100%; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; display: flex; gap: 0; padding-bottom: 10px; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
+.music-carousel-wrapper::-webkit-scrollbar { height: 6px; } .music-carousel-wrapper::-webkit-scrollbar-thumb { background: var(--game-border-color); border-radius: 3px; } .music-carousel-wrapper::-webkit-scrollbar-track { background: #2d1421; }
+.music-page { min-width: 100%; scroll-snap-align: start; display: flex; flex-direction: column; gap: 10px; padding: 0 5px; }
+.pagination-container { display: flex; justify-content: center; gap: 5px; margin-top: 10px; margin-bottom: 15px; flex-wrap: wrap; align-items: center; }
+.page-btn { background: #333; color: #fff; border: 1px solid #555; border-radius: 4px; width: 30px; height: 30px; display: flex; justify-content: center; align-items: center; font-size: 12px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+.page-btn.active { background: var(--game-border-color); color: #000; border-color: var(--game-border-color); }
+.music-item-row { background:#1e0c15; padding:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center; transition: all 0.3s ease; }
+.music-left-group { display: flex; align-items: center; gap: 10px; width: 55%; overflow: hidden; }
+.music-checkbox { width: 18px; height: 18px; cursor: pointer; accent-color: #ff99cc; display: none; }
+.delete-mode-active .music-checkbox { display: inline-block; }
+.music-name-txt { font-weight:bold; font-size:13px; color:var(--game-text-color); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; transition: color 0.3s; }
+.music-actions-grid { display: flex; flex-direction: column; gap: 10px; width: 100%; margin-top: 10px; }
+.music-actions-row { display: flex; gap: 10px; width: 100%; justify-content: space-between; }
+.btn-music-config { width: 28px; height: 30px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 12px; transition: all 0.3s ease; border: 1px solid transparent; }
+@keyframes rgbBorderGlow { 0% { border-color: #ff0000; box-shadow: 0 0 15px #ff0000; } 33% { border-color: #00ff00; box-shadow: 0 0 15px #00ff00; } 66% { border-color: #0000ff; box-shadow: 0 0 15px #0000ff; } 100% { border-color: #ff0000; box-shadow: 0 0 15px #ff0000; } }
+.music-row-rgb { animation: rgbBorderGlow 2.5s linear infinite !important; background: #2a111d !important; transform: scale(1.02); z-index: 2; }
+.music-row-rgb .music-name-txt { color: #ffffff !important; text-shadow: 0 0 8px #ffffff; }
+.music-row-dimmed { background: #0a0305 !important; border-color: #333 !important; opacity: 0.6; }
+.music-row-dimmed .music-name-txt { color: #666 !important; }
+.btn-shuffle-active { background: var(--game-btn-color) !important; color: #000 !important; box-shadow: 0 0 20px var(--game-btn-color), 0 5px 0 var(--game-btn-shadow) !important; animation: pulseA 1.5s infinite ease-in-out; }
+.diff-btn { width: 100%; height: 50px; margin-bottom: 12px; font-size: 16px; font-weight: bold; color: #fff; border: none; border-radius: 25px; cursor: pointer; box-shadow: 0 5px 0 rgba(0,0,0,0.5); transition: transform 0.1s; }
+.diff-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 rgba(0,0,0,0.5); }
+.diff-1 { background: #2ecc71; } .diff-2 { background: #f1c40f; color: #000; } .diff-3 { background: #e67e22; } .diff-4 { background: #e74c3c; }
+.tab-btn-group { display: flex; gap: 10px; margin-bottom: 20px; } 
+.tab-btn { flex: 1; padding: 12px 0; background: #4a2135; color: #fff; border: 1px solid var(--game-border-color); border-radius: 8px; font-weight: bold; cursor: pointer; } 
+.tab-btn.active { background: var(--game-btn-color); color: #000; } 
+.tab-content { display: none; text-align: left; font-size: 14px; line-height: 1.6; color: #ffb6c1; } .tab-content.active { display: block; } .rule-hl { color: var(--game-text-color); font-weight: bold; } 
+.ltkh-heart { position: relative; width: 120px; height: 120px; animation: beat 0.8s infinite alternate; margin: 0 auto 40px; flex-shrink: 0; }
+.ltkh-heart:before, .ltkh-heart:after { position: absolute; content: ""; left: 60px; top: 0; width: 60px; height: 100px; background: #ff0040; border-radius: 60px 60px 0 0; transform: rotate(-45deg); transform-origin: 0 100%; box-shadow: 0 0 50px #ff0040; }
+.ltkh-heart:after { left: 0; transform: rotate(45deg); transform-origin: 100% 100%; }
+@keyframes beat { 0% { transform: scale(1); } 100% { transform: scale(1.3); } }
+.ltkh-text-box { flex-grow: 1; overflow: hidden; position: relative; width: 90%; max-width: 450px; mask-image: linear-gradient(to bottom, transparent, black 15%, black 85%, transparent); -webkit-mask-image: linear-gradient(to bottom, transparent, black 15%, black 85%, transparent); }
+.ltkh-text { position: absolute; width: 100%; color: #fff; font-size: 17px; line-height: 2.2; text-align: center; font-weight: bold; text-shadow: 0 0 8px rgba(255,255,255,0.6); top: 100%; }
+@keyframes scrollTxt { 0% { top: 100%; } 100% { top: -150%; } }
+.stealth-player-panel { background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); border: 1px solid rgba(255, 153, 204, 0.3); border-radius: 12px; padding: 12px 15px; margin-top: 15px; display: flex; flex-direction: column; gap: 8px; }
+.stealth-row-1 { display: flex; justify-content: center; align-items: center; gap: 20px; }
+.stealth-row-2 { display: flex; align-items: center; gap: 10px; width: 100%; }
+.stealth-btn { background: transparent; border: none; color: var(--game-text-color); font-size: 16px; font-weight: bold; cursor: pointer; outline: none; transition: transform 0.1s; }
+.stealth-btn:active { transform: scale(0.8); }
+.btn-play-stealth { font-size: 24px; width: 40px; height: 40px; border-radius: 50%; background: var(--game-border-color); color: #000; display: flex; justify-content: center; align-items: center; box-shadow: 0 0 10px rgba(255, 153, 204, 0.4); }
+.stealth-time { font-family: monospace; font-size: 11px; color: #ffb6c1; }
+.stealth-seek { flex: 1; height: 4px; border-radius: 2px; accent-color: var(--game-border-color); cursor: pointer; background: #444; -webkit-appearance: none; }
+.stealth-seek::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 12px; height: 12px; border-radius: 50%; background: var(--game-btn-color); box-shadow: 0 0 5px #000; }
+.speed-drag-box { background: rgba(255,255,255,0.1); border: 1px dashed rgba(255,153,204,0.5); padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: bold; color: var(--game-text-color); cursor: ew-resize; user-select: none; touch-action: none; min-width: 35px; text-align: center; }
+.name-inputs-wrapper { display: flex; flex-direction: column; gap: 15px; width: 85%; max-width: 320px; margin: 0 auto; }
+.name-inputs-wrapper input { width: 100%; padding: 15px; border-radius: 10px; border: 2px solid #333333; background: #111111; color: #ffffff; font-size: 16px; outline: none; text-align: center; opacity: 0; animation: borderGlowSync 4s infinite alternate; }
+</style>
+</head>
+<body>
+<div id="welcome-modal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 999999 !important; font-family: 'Arial', sans-serif;">
+    <div style="background: white; padding: 30px; border-radius: 20px; text-align: center; width: 80%; max-width: 400px; box-shadow: 0 0 20px #ff4d4d;">
+        <h2 style="color: #ff4d4d; margin-bottom: 15px;">Chào Công Chúa! ❤️</h2>
+        <p style="color: #333; line-height: 1.6; margin-bottom: 25px;">
+            Anh có một bất ngờ nhỏ dành cho em. Hãy bật loa lên và nhấn nút bên dưới để bắt đầu nhé!
+        </p>
+        <button id="close-modal-btn" style="background: #ff4d4d; color: white; border: none; padding: 12px 30px; border-radius: 50px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s;">
+            Mở Quà Ngay 🎁
+        </button>
+    </div>
+</div>
+</div>
+<div id="bg-overlay"></div>
+<div id="water-drop-fx"></div>
+<div id="glow-transition"></div>
+<div id="settings-trigger-btn" class="ui-btn" onclick="openModal('overlay-settings')">⚙️</div>
+<div style="position: absolute; top: -50px; left: -50px; width: 10px; height: 10px; opacity: 0.01; z-index: -1000; pointer-events: none; overflow: hidden;"><div id="youtube-player-container"></div></div>
+<audio id="local-audio-player" style="display:none;"></audio>
+
+<div id="main-hub-screen" class="screen-container" style="display: flex;">
+    <div class="title-wrapper"><h1 class="title-main">Quân GM<br>Code Game Tặng Em</h1><p class="title-sub">CHỌN TRÒ ĐỂ GIẢI TRÍ NHÉ BÉ</p></div>
+    <div class="menu-btn-group">
+        <button class="btn-core btn-scale-odd ui-btn" onclick="hubClick('duaxi', this)">ĐUA XÌ</button>
+        <button class="btn-core btn-scale-even ui-btn" style="background: cyan; box-shadow: 0 8px 0px #009999, 0 15px 20px rgba(0,0,0,0.6);" onclick="hubClick('minigame', this)">MINI GAMES</button>
+    </div>
+</div>
+
+<div id="menu-screen" class="screen-container">
+    <div class="title-wrapper"><h1 class="title-main">Đua Xì</h1><p class="title-sub">AI VỀ ĐÍCH TRƯỚC?</p></div>
+    <div class="menu-btn-group">
+        <button class="btn-core btn-scale-odd ui-btn" onclick="navigateMenu('normal', this)">ĐUA THƯỜNG</button>
+        <button class="btn-core btn-scale-even ui-btn" onclick="navigateMenu('tournament', this)">ĐUA GIẢI</button>
+        <button class="btn-core btn-back-hub ui-btn" onclick="navigateMainMenu('main-hub-screen', this)">QUAY LẠI</button>
+    </div>
+</div>
+
+<div id="mini-game-menu-screen" class="screen-container">
+    <div class="title-wrapper"><h1 class="title-main" style="background: linear-gradient(90deg, #00f2fe, #4facfe, #00f2fe); -webkit-background-clip: text;">Mini Games</h1><p class="title-sub" style="color:cyan;">XẢ STRESS NÈ</p></div>
+    <div class="menu-btn-group">
+        <button class="btn-core btn-scale-odd ui-btn" style="background:#2ecc71; box-shadow: 0 8px 0px #1e824c;" onclick="showDifficulty('snake')">🐍 RẮN SĂN MỒI</button>
+        <button class="btn-core btn-scale-even ui-btn" style="background:#9b59b6; box-shadow: 0 8px 0px #673ab7;" onclick="showDifficulty('tetris')">🧱 XẾP HÌNH</button>
+        <button class="btn-core btn-scale-odd ui-btn" style="background:#f1c40f; box-shadow: 0 8px 0px #f39c12;" onclick="launchMiniGame('chicken')">🐔 BẮN GÀ</button>
+        <button class="btn-core btn-back-hub ui-btn" onclick="navigateMainMenu('main-hub-screen', this)">QUAY LẠI</button>
+    </div>
+</div>
+
+<div id="game-screen" class="screen-container" style="padding-top: 20px;">
+    <button class="btn-core btn-back-hub ui-btn" style="width: 120px; height: 35px; font-size: 12px; position: absolute; top: 10px; left: 10px; margin: 0; z-index: 100;" onclick="quitToScreen('menu-screen')">QUAY LẠI</button>
+    <div class="board-container" id="game-board"><div id="visual-grid" class="visual-grid"></div><div id="entity-layer"></div></div>
+    <div class="bottom-control-area">
+        <div class="deck-wrapper-3d" onclick="executeCardDraw()" id="deck-wrapper-3d"><div class="deck-rotator" id="deck-rotator-node"><div class="deck-card-face face-back" id="deck-back-face"></div><div class="deck-card-face face-front" id="drawn-card-result"></div></div></div>
+        <p id="system-status-msg"></p>
+    </div>
+</div>
+
+<div id="snake-screen" class="screen-container">
+    <div class="arcade-container">
+        <div class="game-header-bar"><span>🐍 RẮN BÉO</span><span id="snake-score">Điểm: 0</span></div>
+        <div class="canvas-area">
+            <canvas id="snake-canvas" width="300" height="450"></canvas>
+            <div class="game-over-overlay" id="snake-go"><div class="game-over-text">BỤP!</div><div class="final-score-text" id="snake-final-score">Điểm: 0</div><div style="display:flex; gap:10px;"><button class="btn-core ui-btn" style="width:120px; height:45px; font-size:14px;" onclick="SnakeGame.startReal()">CHƠI LẠI</button><button class="btn-core btn-back-hub ui-btn" style="width:120px; height:45px; font-size:14px; margin:0;" onclick="quitToScreen('mini-game-menu-screen')">MENU</button></div></div>
+        </div>
+        <div class="arcade-controls-panel" style="justify-content: center;"><div class="dpad-container"><button class="ctrl-btn btn-up-class" id="btn-up-snake">▲</button><button class="ctrl-btn btn-left-class" id="btn-left-snake">◀</button><button class="ctrl-btn btn-down-class" id="btn-down-snake">▼</button><button class="ctrl-btn btn-right-class" id="btn-right-snake">▶</button></div></div>
+    </div>
+</div>
+
+<div id="tetris-screen" class="screen-container">
+    <div class="arcade-container">
+        <div class="game-header-bar"><span>🧱 XẾP HÌNH</span><span id="tetris-score">Điểm: 0</span></div>
+        <div class="canvas-area">
+            <canvas id="tetris-canvas" width="240" height="480"></canvas>
+            <div class="game-over-overlay" id="tetris-go"><div class="game-over-text">ĐẦY NHÀ!</div><div class="final-score-text" id="tetris-final-score">Điểm: 0</div><div style="display:flex; gap:10px;"><button class="btn-core ui-btn" style="width:120px; height:45px; font-size:14px;" onclick="TetrisGame.startReal()">CHƠI LẠI</button><button class="btn-core btn-back-hub ui-btn" style="width:120px; height:45px; font-size:14px; margin:0;" onclick="quitToScreen('mini-game-menu-screen')">MENU</button></div></div>
+        </div>
+        <div class="arcade-controls-panel"><div class="dpad-container"><button class="ctrl-btn btn-up-class" id="btn-up-tetris">▲</button><button class="ctrl-btn btn-left-class" id="btn-left-tetris">◀</button><button class="ctrl-btn btn-down-class" id="btn-down-tetris">▼</button><button class="ctrl-btn btn-right-class" id="btn-right-tetris">▶</button></div><div class="action-container"><button class="btn-a-class" id="btn-a-tetris">A</button></div></div>
+    </div>
+</div>
+
+<div id="chicken-screen" class="screen-container">
+    <div class="arcade-container" style="box-shadow: 0 0 30px rgba(243,156,18,0.3); border-color: #f39c12;">
+        <div class="game-header-bar" style="border-color: #f39c12;"><span>🐔 GÀ XÂM LĂNG</span><span id="chicken-score">Điểm: 0 | ❤️ 10</span></div>
+        <div class="canvas-area">
+            <canvas id="chicken-canvas" width="320" height="680"></canvas>
+            <div class="game-over-overlay" id="chicken-go"><div class="game-over-text">GÀ MỔ!</div><div class="final-score-text" id="chicken-final-score">Điểm: 0</div><div style="display:flex; gap:10px;"><button class="btn-core ui-btn" style="width:120px; height:45px; font-size:14px; background:#f39c12; box-shadow:0 6px 0 #b9770e;" onclick="ChickenGame.start()">CHƠI LẠI</button><button class="btn-core btn-back-hub ui-btn" style="width:120px; height:45px; font-size:14px; margin:0;" onclick="quitToScreen('mini-game-menu-screen')">MENU</button></div></div>
+        </div>
+    </div>
+</div>
+
+<div class="fullscreen-overlay" id="overlay-custom-alert"><div class="dialog-box" style="text-align: center;"><h2 style="color:var(--game-text-color); margin-bottom:20px; font-size: 26px; text-shadow: 0 0 10px var(--game-text-color);" id="alert-title"></h2><p style="font-size: 16px; line-height: 1.6; color: #fff; margin-bottom: 20px;" id="alert-text"></p><button class="btn-core ui-btn" style="width:100%; height:50px; font-size:16px;" id="alert-btn"></button></div></div>
+<div class="fullscreen-overlay" id="overlay-secret-1"><div class="dialog-box" style="text-align: center;"><h2 style="color:var(--game-text-color); margin-bottom:20px; font-size: 26px; text-shadow: 0 0 10px var(--game-text-color);">BÍ MẬT NHỎ!</h2><p style="font-size: 16px; line-height: 1.6; color: #fff; margin-bottom: 30px;">ú oàaaa, giỏi quá ta chơi cũng lâu phết ha, thấy game này code oke hong, à quên bí mật ở sau nút bấm ở dưới nè nhấp vào i</p><button class="btn-core ui-btn" style="width:100%; height:60px; font-size:20px; background:#ff4757; color:#fff; box-shadow:0 8px 0px #bd2f3c;" onclick="openSecret2()">luv u</button></div></div>
+<div class="fullscreen-overlay" id="overlay-secret-2"><div style="position: relative; width: 100vw; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 10vh;"><div class="ltkh-heart"></div><div class="ltkh-text-box"><div class="ltkh-text" id="scroll-txt">Cảm ơn em vì đã luôn ở bên anh suốt thời gian qua.<br><br>Từ những ngày đầu gặp gỡ, anh đã biết mình thật may mắn khi có em trong đời.<br><br>Cảm ơn em vì đã luôn thấu hiểu, cảm thông cho những lúc anh bận rộn hay vô tâm.<br><br>Dù mình có yêu xa, dù thỉnh thoảng có những cãi vã nhỏ, nhưng tình cảm anh dành cho em chưa bao giờ thay đổi.<br><br>Anh hy vọng đoạn code nhỏ này sẽ làm em mỉm cười.<br><br>Anh không phải là người quá lãng mạn bằng lời nói, nhưng anh luôn cố gắng dùng hành động để chứng minh.<br><br>Mong rằng hai đứa mình sẽ tiếp tục nắm tay nhau đi qua những tháng ngày sắp tới.<br><br>Yêu em thật nhiều, đoá hoa xinh đẹp và tài giỏi nhất của anh!</div></div></div></div>
+<div class="fullscreen-overlay" id="overlay-difficulty"><div class="dialog-box" style="width: 300px; padding: 20px;"><div class="close-btn ui-btn" onclick="closeModal('overlay-difficulty')">✕</div><h2 style="color:var(--game-text-color); text-align:center; margin-bottom:20px;">CHỌN ĐỘ KHÓ</h2><button class="diff-btn diff-1 ui-btn" onclick="selectDifficulty('easy')">SIÊU DỄ</button><button class="diff-btn diff-2 ui-btn" onclick="selectDifficulty('normal')">DỄ DỄ</button><button class="diff-btn diff-3 ui-btn" onclick="selectDifficulty('hard')">KHÓ CHÚT</button><button class="diff-btn diff-4 ui-btn" onclick="selectDifficulty('expert')">SIÊU KHÓ</button></div></div>
+<div class="fullscreen-overlay" id="overlay-names"><div class="dialog-box" style="background: transparent; border: none; box-shadow: none;"><h2 style="color:var(--game-text-color); margin-bottom:25px; font-size: 28px; text-align: center;">Thú Vui Đặt Tên</h2><div class="name-inputs-wrapper" id="name-box"><input type="text" id="player-name-0" placeholder="Tên Át Bích (♠)..."><input type="text" id="player-name-1" placeholder="Tên Át Chuồn (♣)..."><input type="text" id="player-name-2" placeholder="Tên Át Rô (♦)..."><input type="text" id="player-name-3" placeholder="Tên Át Cơ (♥)..."><button class="btn-core ui-btn" id="btn-start-tour" style="width:100%; margin-top:10px; opacity:0;" onclick="confirmPlayerNames()">VÀO TRẬN</button></div></div></div>
+<div class="fullscreen-overlay" id="overlay-card-select"><div class="dialog-box" style="background: transparent; border: none; box-shadow: none; width: 100%; max-width: 400px;"><h2 style="color:var(--game-text-color); margin-bottom:40px; font-size: 32px; text-align: center; text-shadow: 0 0 20px var(--game-text-color);">Chọn Bài Đi Bé</h2><div class="card-select-container"><div class="selectable-card suit-black" onclick="selectCardToRace(0, event)">A♠</div><div class="selectable-card suit-black" onclick="selectCardToRace(1, event)">A♣</div><div class="selectable-card suit-red" onclick="selectCardToRace(2, event)">A♦</div><div class="selectable-card suit-red" onclick="selectCardToRace(3, event)">A♥</div></div><button class="btn-core ui-btn" style="width: 100%; height: 50px; font-size: 16px; margin-top: 50px; background: #4a2135; color: #fff;" onclick="closeModal('overlay-card-select'); document.getElementById('menu-screen').style.display='flex';">QUAY LẠI</button></div></div>
+<div class="fullscreen-overlay" id="overlay-victory"><h1 class="victory-headline" id="victory-headline"></h1><div id="victory-card-podium"></div><h2 id="victory-player-name"></h2><div class="btn-row"><button class="btn-core ui-btn" style="width:130px; height:55px; font-size:16px;" onclick="playAgain()">CHƠI LẠI</button><button class="btn-core ui-btn" style="width:130px; height:55px; font-size:14px; background:#4a2135; color:#fff;" onclick="quitToScreen('menu-screen')">MENU</button></div></div>
+<div class="fullscreen-overlay" id="overlay-love-message"><div class="dialog-box" style="text-align: center;"><h2 style="color:var(--game-text-color); margin-bottom:20px; font-size: 26px; text-shadow: 0 0 10px var(--game-text-color);" id="love-title"></h2><p style="font-size: 16px; line-height: 1.6; color: #fff; margin-bottom: 25px;" id="love-content"></p><button class="btn-core ui-btn" style="width:100%; height:50px; font-size:16px; background:#4a2135; color:#fff;" onclick="closeLoveMsg()">hihi</button></div></div>
+<div class="fullscreen-overlay" id="overlay-settings"><div class="dialog-box"><div class="close-btn ui-btn" onclick="closeModal('overlay-settings')">✕</div><h2 style="color:var(--game-text-color); text-align:center; margin-bottom:20px;">TÙY CHỈNH</h2><div class="settings-row"><span>Nhạc Nền (BGM)</span><input type="range" id="vol-bgm" min="0" max="1" step="0.05" value="0.5"></div><div class="settings-row"><span>Âm Thanh (SFX)</span><input type="range" id="vol-sfx" min="0" max="1" step="0.05" value="0.7"></div><hr style="border:0.5px solid #4a2135; margin-bottom:12px;"><div class="settings-row"><span>Nền Web</span><input type="color" id="cfg-bg" value="#1a0b12"></div><div class="settings-row"><span>Bàn Cờ</span><input type="color" id="cfg-board" value="#2d1421"></div><div class="settings-row"><span>Viền Bảng</span><input type="color" id="cfg-border" value="#ff99cc"></div><div class="settings-row"><span>Màu Chữ</span><input type="color" id="cfg-text" value="#ffb6c1"></div><div class="settings-row"><span>Nút Bấm</span><input type="color" id="cfg-btn" value="#ff99cc"></div><hr style="border:0.5px solid #4a2135; margin-bottom:12px;"><div class="settings-row"><span>HÌNH NỀN</span><label class="file-label" id="lbl-bg"><span id="txt-bg">CHỌN ẢNH</span><input type="file" id="upload-bg" hidden accept="image/*" onchange="updateFileLabel('upload-bg', 'txt-bg', 'lbl-bg')"></label></div><div class="settings-row"><span>MẶT ÚP BÀI</span><label class="file-label" id="lbl-card"><span id="txt-card">CHỌN ẢNH</span><input type="file" id="upload-card" hidden accept="image/*" onchange="updateFileLabel('upload-card', 'txt-card', 'lbl-card')"></label></div><div style="display:flex; gap:8px; margin-top:15px;"><button class="btn-core ui-btn" style="width:33.3%; height:40px; font-size:12px; background:#4a69bd; color:#fff; box-shadow:none;" onclick="openModal('overlay-rules')">LUẬT</button><button class="btn-core ui-btn" style="width:33.3%; height:40px; font-size:12px; background:#e74c3c; color:#fff; box-shadow:none;" onclick="clearSavedData()">XÓA DATA</button><button class="btn-core ui-btn" style="width:33.3%; height:40px; font-size:12px; background:#555; color:#fff; box-shadow:none;" onclick="quitToScreen('main-hub-screen'); closeModal('overlay-settings'); playMasterMusic('menu');">MENU</button></div><button class="btn-core ui-btn" id="btn-save-settings" style="width:100%; height:50px; font-size:18px; margin-top:15px;" onclick="executeSaveSettings()">LƯU CÀI ĐẶT</button><button class="btn-core ui-btn" style="width:100%; height:40px; margin-top:10px; background:#e67e22; color:#fff; font-size:14px; box-shadow:none;" onclick="openMusicLibraryModal()">🎵 KHO NHẠC</button></div></div>
+<div class="fullscreen-overlay" id="overlay-music-lib"><div class="dialog-box" style="width: 380px;"><h2 style="color:var(--game-text-color); text-align:center; margin-bottom:5px;">🎵 KHO NHẠC</h2><div class="pagination-container" id="music-pagination"></div><div class="music-carousel-wrapper" id="music-carousel"></div><div class="stealth-player-panel" id="custom-player-ui" style="display: none;"><div class="stealth-row-1"><button class="stealth-btn ui-btn" onclick="globalSeekRelative(-10)">-10</button><button class="stealth-btn btn-play-stealth ui-btn" id="btn-play-pause" onclick="globalTogglePlayPause()">▶</button><button class="stealth-btn ui-btn" onclick="globalSeekRelative(10)">+10</button></div><div class="stealth-row-2"><span class="stealth-time" id="current-time">00:00</span><input type="range" id="music-seek-bar" class="stealth-seek" min="0" max="100" value="0" oninput="globalManualSeek(this.value)"><span class="stealth-time" id="duration-time">00:00</span><div id="speed-dragger" class="speed-drag-box" title="Vuốt ngang để đổi tốc độ">1.0x</div></div></div><p style="font-size:11px; color:#ffb6c1; text-align:center; margin:10px 0;"><b style="color:#ff99cc">[M]</b>: Nhạc Menu | <b style="color:cyan">[G]</b>: Nhạc Game | <b style="color:#2ecc71">[∞]</b>: Cả Hai</p><div class="music-actions-grid"><div class="music-actions-row"><button class="btn-core ui-btn" id="btn-shuffle-music" style="width:48%; height:40px; font-size:13px; background:#2d1421; color:#ffb6c1; box-shadow:0 5px 0 #1a0b12;" onclick="toggleShuffleMode()">TRÁO NHẠC</button><label class="btn-core ui-btn" style="width:48%; height:40px; font-size:12px; cursor:pointer; display:flex; justify-content:center; align-items:center; color:#000;"><span id="upload-music-txt">TẢI NHẠC LÊN</span><input type="file" id="upload-music-input" hidden accept="audio/*" onchange="handleMusicUpload(event)"></label></div><div class="music-actions-row"><button class="btn-core ui-btn" id="btn-delete-music" style="width:48%; height:40px; font-size:13px; background:#4a2135; color:#ffb6c1; box-shadow:0 5px 0 #2d1421;" onclick="toggleDeleteMode()">XÓA NHẠC</button><button class="btn-core ui-btn" style="width:48%; height:40px; font-size:14px;" onclick="closeMusicModal()">ĐÃ XONG</button></div></div></div></div>
+<div class="fullscreen-overlay" id="overlay-name-input"><div class="dialog-box" style="width: 340px;"><h2 style="color:var(--game-text-color); text-align:center; margin-bottom:20px;">TÊN BÀI HÁT</h2><input type="text" id="custom-song-name" class="custom-input-field" placeholder="Tên bài hát..."><div style="display:flex; gap:10px;"><button class="btn-core ui-btn" style="width:40%; height:45px; font-size:14px; background:#4a2135; color:#fff;" onclick="cancelMusicUpload()">HỦY</button><button class="btn-core ui-btn" style="width:60%; height:45px; font-size:14px;" onclick="confirmMusicUpload()">LƯU</button></div></div></div>
+<div class="fullscreen-overlay" id="overlay-rules"><div class="dialog-box"><div class="close-btn ui-btn" onclick="closeModal('overlay-rules')">✕</div><h2 style="color:var(--game-text-color); text-align:center; margin-bottom:20px;">CẨM NANG</h2><div class="tab-btn-group"><button class="tab-btn active ui-btn" id="btn-tab-luat" onclick="switchTab('luat')">LUẬT GAME</button><button class="tab-btn ui-btn" id="btn-tab-choi" onclick="switchTab('choi')">CÁCH CHƠI</button></div><div class="tab-content active" id="tab-luat"><p style="margin-bottom: 10px; color: #ff4757; font-weight: bold;">LUẬT PHẠT 3 LÁ:</p><p style="margin-bottom: 15px;">Rút liên tiếp 3 lá cùng chất thì phạt lùi 2 ô.</p><p style="margin-bottom: 10px; color: #ff4757; font-weight: bold;">LUẬT BLOCK (PHẠT CẶP):</p><ul style="padding-left: 15px; margin-top: 5px;"><li><span class="rule-hl">TH1:</span> ♣♣ - ♦♦ - ♣♣ -> Phạt ♣ 1 ô.</li><li><span class="rule-hl">TH3:</span> ♣♣ - ♦♦ - ♣♣ - ♦♦ -> Phạt cả hai.</li><li><span class="rule-hl">TH4:</span> ♣♣ - ♦♦ - ♠ - ♣♣ -> Vẫn phạt ♣ 1 ô.</li><li><span class="rule-hl">TH5:</span> ♣♣ - ♦♦ - ♠♠ - ♣♣ -> Hợp lệ.</li></ul></div><div class="tab-content" id="tab-choi"><p style="margin-bottom: 10px;"><span class="rule-hl">Mục tiêu:</span> Đưa quân Át về đích.</p><p style="margin-bottom: 10px;"><span class="rule-hl">Bị Phạt:</span> Bộ bài nháy đỏ. Chạm vào lá bài nháy đỏ để lùi.</p><p style="margin-bottom: 10px;"><span class="rule-hl">Cột Bẫy (?):</span> Khi 4 lá vượt bẫy -> bẫy nháy. Chạm mở: Không trùng (Lùi 1), Trùng 3 (Tiến 2), Trùng 4 (Tiến 1).</p></div></div></div>
+
+<script>
+let progressInterval; let currentPlaybackSpeed = 1.0; const localAudio = document.getElementById('local-audio-player'); let audioCtx; let bgmVolume = parseFloat(localStorage.getItem('vol_bgm')) || 0.5; let sfxVolume = parseFloat(localStorage.getItem('vol_sfx')) || 0.7; let s_msg = 0, s_trp = false, s_pen = false, s_unl = false, s_tc = 0; function $(id) { return document.getElementById(id); } function openModal(id) { $(id).style.display = 'flex'; } function closeModal(id) { $(id).style.display = 'none'; } function switchTab(t) { ['luat','choi'].forEach(function(i) { $(`btn-tab-${i}`).classList.remove('active'); $(`tab-${i}`).classList.remove('active'); }); $(`btn-tab-${t}`).classList.add('active'); $(`tab-${t}`).classList.add('active'); } $('vol-bgm').value = bgmVolume; $('vol-sfx').value = sfxVolume; $('vol-bgm').addEventListener('input', e => { bgmVolume = parseFloat(e.target.value); localAudio.volume = bgmVolume; localStorage.setItem('vol_bgm', bgmVolume);}); $('vol-sfx').addEventListener('input', e => { sfxVolume = parseFloat(e.target.value); localStorage.setItem('vol_sfx', sfxVolume);}); function initSound() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume(); localAudio.volume = bgmVolume; } function playSfx(type) { if (!audioCtx) return; const t = audioCtx.currentTime, gain = audioCtx.createGain(); gain.connect(audioCtx.destination); let v = sfxVolume; if (type === 'flip' || type === 'deal') { const b = audioCtx.createBuffer(1, audioCtx.sampleRate*0.05, audioCtx.sampleRate), d = b.getChannelData(0); for (let i=0; i<d.length; i++) d[i] = Math.random()*2-1; const s = audioCtx.createBufferSource(); s.buffer=b; const f = audioCtx.createBiquadFilter(); f.type='highpass'; f.frequency.value=800; s.connect(f); f.connect(gain); gain.gain.setValueAtTime(v*0.8, t); gain.gain.exponentialRampToValueAtTime(0.01, t+0.05); s.start(t); return; } const osc = audioCtx.createOscillator(); osc.connect(gain); if (type === 'click' || type === 'move') { osc.type='sine'; osc.frequency.setValueAtTime(800,t); osc.frequency.exponentialRampToValueAtTime(100,t+0.05); gain.gain.setValueAtTime(v*0.4,t); gain.gain.exponentialRampToValueAtTime(0.01,t+0.05); osc.start(t); osc.stop(t+0.05); } else if (type === 'eat' || type === 'shoot') { osc.type='square'; osc.frequency.setValueAtTime(400,t); osc.frequency.exponentialRampToValueAtTime(800,t+0.1); gain.gain.setValueAtTime(v*0.1,t); gain.gain.exponentialRampToValueAtTime(0.01,t+0.1); osc.start(t); osc.stop(t+0.1); } else if (type === 'boom' || type === 'error') { osc.type='sawtooth'; osc.frequency.setValueAtTime(150,t); osc.frequency.exponentialRampToValueAtTime(50,t+0.3); gain.gain.setValueAtTime(v*0.4,t); gain.gain.linearRampToValueAtTime(0.01,t+0.3); osc.start(t); osc.stop(t+0.3); } else if (type === 'warn') { osc.type='square'; osc.frequency.setValueAtTime(1200,t); osc.frequency.exponentialRampToValueAtTime(600,t+0.1); gain.gain.setValueAtTime(v*0.2,t); gain.gain.exponentialRampToValueAtTime(0.01,t+0.1); osc.start(t); osc.stop(t+0.1); } else if (type === 'win') { osc.type='square'; osc.frequency.setValueAtTime(440,t); osc.frequency.setValueAtTime(554.37,t+0.1); osc.frequency.setValueAtTime(659.25,t+0.2); osc.frequency.setValueAtTime(880,t+0.3); gain.gain.setValueAtTime(v*0.3,t); gain.gain.linearRampToValueAtTime(0.01,t+0.6); osc.start(t); osc.stop(t+0.6); } else if (type === 'lose') { osc.type='triangle'; osc.frequency.setValueAtTime(392,t); osc.frequency.setValueAtTime(369,t+0.25); gain.gain.setValueAtTime(v*0.5,t); gain.gain.linearRampToValueAtTime(0.01,t+2); osc.start(t); osc.stop(t+2); } else if (type === 'ting') { osc.type='sine'; osc.frequency.setValueAtTime(1500,t); gain.gain.setValueAtTime(v*0.15,t); gain.gain.exponentialRampToValueAtTime(0.01,t+0.1); osc.start(t); osc.stop(t+0.1); } else if (type === 'swoosh') { osc.type='sine'; osc.frequency.setValueAtTime(250,t); gain.gain.setValueAtTime(v*0.1,t); gain.gain.linearRampToValueAtTime(0.01,t+0.4); osc.start(t); osc.stop(t+0.4); } }
+document.addEventListener('click', e => { initSound(); if(e.target.closest('.ui-btn') || e.target.tagName.toLowerCase() === 'button') playSfx('click'); });
+let audioUnlocked = false; 
+document.body.addEventListener('pointerdown', () => { 
+    if(!audioUnlocked) { 
+        initSound(); 
+        audioUnlocked = true; 
+        playMasterMusic('menu');
+    } 
+}, {once: true});
+
+const DB_NAME = "DeNhatMusicDB_v17", STORE_NAME = "CustomSongs";
+function initDB() { return new Promise((res, rej) => { const req = indexedDB.open(DB_NAME, 1); req.onupgradeneeded = e => { const db = e.target.result; if(!db.objectStoreNames.contains(STORE_NAME)) db.createObjectStore(STORE_NAME, { keyPath: "id" }); }; req.onsuccess = e => res(e.target.result); req.onerror = e => rej(e.target.error); }); }
+async function saveCustomSongToDB(id, name, data, type) { const db = await initDB(); return new Promise((res, rej) => { const trans = db.transaction([STORE_NAME], "readwrite"), store = trans.objectStore(STORE_NAME), req = store.put({ id, name, data, type }); req.onsuccess = () => res(); req.onerror = () => rej(); }); }
+async function getAllCustomSongsFromDB() { const db = await initDB(); return new Promise((res, rej) => { const trans = db.transaction([STORE_NAME], "readonly"), store = trans.objectStore(STORE_NAME), req = store.getAll(); req.onsuccess = () => res(req.result); req.onerror = () => rej(); }); }
+async function deleteSongsFromDB(ids) { const db = await initDB(); return new Promise((res, rej) => { const trans = db.transaction([STORE_NAME], "readwrite"), store = trans.objectStore(STORE_NAME); ids.forEach(id => store.delete(id)); trans.oncomplete = () => res(); trans.onerror = () => rej(); }); }
+async function getSongDataFromDB(id) { const db = await initDB(); return new Promise((res, rej) => { const trans = db.transaction([STORE_NAME], "readonly"), store = trans.objectStore(STORE_NAME), req = store.get(id); req.onsuccess = () => res(req.result); req.onerror = () => rej(); }); }
+
+const MUSIC_LIBRARY_DEFAULTS = { 
+    "starboy": { name: "Starboy", data: "./music/Star-Boy.m4a", type: "local" }, 
+	"attention": { name: "Attention", data: "./music/Attention.m4a", type: "local" }, 
+	"hk1999": { name: "Dạo Bước HK 1999", data: "./music/Dao-Buoc-HK-1999.m4a", type: "local" }, 
+	"3strikes": { name: "3 Strikes", data: "./music/3-STRIKES.m4a", type: "local" }, 
+	"daylight": { name: "Daylight", data: "./music/Daylight.m4a", type: "local" }, 
+	"goldenhour": { name: "Golden Hour", data: "./music/golden-hour.m4a", type: "local" }, 
+	"cheatingonu": { name: "Cheating on You", data: "./music/Cheating-on-You.m4a", type: "local" }, 
+	"howlong": { name: "How Long", data: "./music/How-Long.m4a", type: "local" }, 
+	"diewithasmile": { name: "Die With A Smile", data: "./music/Die-With-A-Smile.m4a", type: "local" },
+	"dangerously": { name: "Dangerously", data: "./music/Dangerously.m4a", type: "local" }
+};
+let ALL_MUSIC_LIST = [], currentMusicPage = 0, selectedSongsForDeletion = [], isDeleteMode = false, userMusicConfig = JSON.parse(localStorage.getItem('user_music_cfg_v17')) || { menu: "starboy", game: "attention" }, isShuffleMode = false, currentMusicKey = null, currentMusicType = null, tempBase64Data = "", tempDefaultName = "", tempMusicType = "local";
+
+async function preLoadMusicDatabase() { ALL_MUSIC_LIST = []; for (let k in MUSIC_LIBRARY_DEFAULTS) ALL_MUSIC_LIST.push({ id: k, name: MUSIC_LIBRARY_DEFAULTS[k].name, isDefault: true }); try { const s = await getAllCustomSongsFromDB(); if(s) s.forEach(x => ALL_MUSIC_LIST.push({ id: x.id, name: x.name, isDefault: false })); } catch(e) {} }
+window.addEventListener('load', () => { initDB(); preLoadMusicDatabase(); });
+
+function formatTime(s) { if(!s || isNaN(s)) return "00:00"; const m = Math.floor(s/60), sec = Math.floor(s%60); return `${m.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`; }
+function globalTogglePlayPause() { playSfx('click'); if(localAudio.paused) localAudio.play().catch(e=>{}); else localAudio.pause(); }
+function globalManualSeek(val) { if(localAudio.duration) localAudio.currentTime = (val/100)*localAudio.duration; }
+function globalSeekRelative(off) { localAudio.currentTime += off; playSfx('click'); }
+function startProgressTimer() { clearInterval(progressInterval); progressInterval = setInterval(() => { if(!localAudio.src) return; let cur = localAudio.currentTime, dur = localAudio.duration; if(dur>0 && !isNaN(dur)) { $('current-time').innerText = formatTime(cur); $('duration-time').innerText = formatTime(dur); if(document.activeElement !== $('music-seek-bar')) $('music-seek-bar').value = (cur/dur)*100; } $('btn-play-pause').innerText = localAudio.paused ? "▶" : "❚❚"; $('btn-play-pause').style.paddingLeft = localAudio.paused ? "3px" : "0px"; }, 500); }
+
+const speedDragger = document.getElementById('speed-dragger'); let isDraggingSpeed = false, startDragX = 0;
+if(speedDragger) { speedDragger.addEventListener('pointerdown', e => { isDraggingSpeed = true; startDragX = e.clientX; speedDragger.style.background = 'rgba(255,153,204,0.3)'; speedDragger.setPointerCapture(e.pointerId); }); speedDragger.addEventListener('pointermove', e => { if(!isDraggingSpeed) return; let dx = e.clientX - startDragX; if(Math.abs(dx) > 30) { if(dx > 0) currentPlaybackSpeed += 0.25; else currentPlaybackSpeed -= 0.25; currentPlaybackSpeed = Math.max(0.5, Math.min(2.0, currentPlaybackSpeed)); speedDragger.innerText = currentPlaybackSpeed.toFixed(2) + 'x'; localAudio.playbackRate = currentPlaybackSpeed; startDragX = e.clientX; playSfx('click'); } }); speedDragger.addEventListener('pointerup', e => { isDraggingSpeed = false; speedDragger.style.background = 'rgba(255,255,255,0.1)'; speedDragger.releasePointerCapture(e.pointerId); }); }
+
+async function openMusicLibraryModal() { closeModal('overlay-settings'); openModal('overlay-music-lib'); try { await preLoadMusicDatabase(); } catch(e) {} selectedSongsForDeletion = []; isDeleteMode = false; renderMusicPages(); }
+function closeMusicModal() { closeModal('overlay-music-lib'); if(!isShuffleMode) playMasterMusic('menu'); }
+
+function renderMusicPages() {
+    const carousel = $('music-carousel'); carousel.innerHTML = ''; const total = ALL_MUSIC_LIST.length, per = 5, pages = Math.ceil(total / per);
+    if(isDeleteMode) carousel.classList.add('delete-mode-active'); else carousel.classList.remove('delete-mode-active');
+    for (let p = 0; p < pages; p++) {
+        let div = document.createElement('div'); div.className = 'music-page'; 
+        for (let i = p * per; i < Math.min((p + 1) * per, total); i++) {
+            const s = ALL_MUSIC_LIST[i]; let isM = userMusicConfig.menu === s.id, isG = userMusicConfig.game === s.id, isB = isM && isG; 
+            let bM = isM && !isB ? '#ff99cc' : '#444', bG = isG && !isB ? 'cyan' : '#444', bB = isB ? '#2ecc71' : '#444', border = isB ? '#2ecc71' : (isM ? '#ff99cc' : (isG ? 'cyan' : '#4a2135')), extra = isShuffleMode ? (currentMusicKey === s.id ? "music-row-rgb" : "music-row-dimmed") : "";
+            if(isShuffleMode) { bM = '#ff99cc'; bG = 'cyan'; bB = '#2ecc71'; }
+            let cb = !s.isDefault ? `<input type="checkbox" class="music-checkbox" value="${s.id}" onchange="toggleDeleteSelection(this)" ${selectedSongsForDeletion.includes(s.id) ? 'checked' : ''}>` : '';
+            div.innerHTML += `<div class="music-item-row ${extra}" style="border: 1px solid ${border};"><div class="music-left-group">${cb}<span class="music-name-txt">${s.name}</span></div><div style="display:flex; gap:5px;"><button class="btn-music-config" onclick="setMusicTarget('${s.id}', 'menu')" style="background:${bM}; color:#000;">M</button><button class="btn-music-config" onclick="setMusicTarget('${s.id}', 'game')" style="background:${bG}; color:#000;">G</button><button class="btn-music-config" onclick="setMusicTarget('${s.id}', 'both')" style="background:${bB}; color:#000;">∞</button></div></div>`;
+        }
+        carousel.appendChild(div);
+    }
+    renderPaginationControls(pages); updateDeleteButtonState();
+}
+function renderPaginationControls(pages) { const pag = $('music-pagination'); pag.innerHTML = ''; if(pages <= 1) return; for (let i = 0; i < pages; i++) pag.innerHTML += `<div class="page-btn ${i === currentMusicPage ? 'active' : ''}" onclick="goToMusicPage(${i})">${i + 1}</div>`; }
+function goToMusicPage(i) { 
+    const carousel = $('music-carousel'); 
+    currentMusicPage = i; 
+    carousel.scrollTo({ left: carousel.clientWidth * i, behavior: 'smooth' }); 
+    
+    document.querySelectorAll('#music-pagination .page-btn').forEach((btn, idx) => {
+        if (idx === i) btn.classList.add('active');
+        else btn.classList.remove('active');
+    });
+}
+
+document.getElementById('music-carousel').addEventListener('scroll', function() {
+    let idx = Math.round(this.scrollLeft / this.clientWidth);
+    if (idx !== currentMusicPage) {
+        currentMusicPage = idx;
+        document.querySelectorAll('#music-pagination .page-btn').forEach((btn, i) => {
+            if (i === idx) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+    }
+});
+
+function setMusicTarget(k, t) { playSfx('click'); if(t === 'both') { userMusicConfig.menu = k; userMusicConfig.game = k; } else if(t === 'menu') { userMusicConfig.menu = k; if(userMusicConfig.game === k) userMusicConfig.game = null; } else if(t === 'game') { userMusicConfig.game = k; if(userMusicConfig.menu === k) userMusicConfig.menu = null; } localStorage.setItem('user_music_cfg_v17', JSON.stringify(userMusicConfig)); if(!isShuffleMode) playMasterMusic(t === 'both' ? 'menu' : t); renderMusicPages(); }
+function handleMusicUpload(e) { const f = e.target.files[0]; if(!f) return; tempDefaultName = f.name.split('.')[0].substring(0, 25); const r = new FileReader(); r.onload = (ev) => { tempBase64Data = ev.target.result; e.target.value = ''; openModal('overlay-name-input'); }; r.readAsDataURL(f); }
+function cancelMusicUpload() { tempBase64Data = ""; closeModal('overlay-name-input'); }
+async function confirmMusicUpload() { let n = $('custom-song-name').value.trim() || tempDefaultName; const id = "c_" + Date.now(); try { await saveCustomSongToDB(id, n, tempBase64Data, "local"); closeModal('overlay-name-input'); tempBase64Data = ""; await preLoadMusicDatabase(); renderMusicPages(); goToMusicPage(Math.ceil(ALL_MUSIC_LIST.length / 5) - 1); } catch(err) {} }
+function toggleDeleteMode() { isDeleteMode = !isDeleteMode; if(!isDeleteMode && selectedSongsForDeletion.length > 0) executeDeleteSelected(); else renderMusicPages(); }
+function toggleDeleteSelection(cb) { if(cb.checked) selectedSongsForDeletion.push(cb.value); else selectedSongsForDeletion = selectedSongsForDeletion.filter(i => i !== cb.value); updateDeleteButtonState(); }
+function updateDeleteButtonState() { const btn = $('btn-delete-music'); if (!isDeleteMode) { btn.innerText = "XÓA NHẠC"; btn.style.background = "#4a2135"; btn.style.color = "#ffb6c1"; } else if(selectedSongsForDeletion.length === 0) { btn.innerText = "HỦY XÓA"; btn.style.background = "#2d1421"; btn.style.color = "#884b66"; } else { btn.innerText = `XÓA (${selectedSongsForDeletion.length})`; btn.style.background = "#e74c3c"; btn.style.color = "#fff"; } }
+async function executeDeleteSelected() { await deleteSongsFromDB(selectedSongsForDeletion); selectedSongsForDeletion = []; isDeleteMode = false; await preLoadMusicDatabase(); renderMusicPages(); }
+function toggleShuffleMode() { playSfx('click'); isShuffleMode = !isShuffleMode; const btn = $('btn-shuffle-music'); if(isShuffleMode) { btn.classList.add('btn-shuffle-active'); btn.innerText = "ĐANG TRÁO"; playRandomSong(); } else { btn.classList.remove('btn-shuffle-active'); btn.innerText = "TRÁO NHẠC"; playMasterMusic('menu'); } renderMusicPages(); }
+function playRandomSong() { if(ALL_MUSIC_LIST.length === 0) return; const s = ALL_MUSIC_LIST[Math.floor(Math.random() * ALL_MUSIC_LIST.length)]; currentMusicKey = s.id; if(MUSIC_LIBRARY_DEFAULTS[s.id]) executePlayMusic(s.id, MUSIC_LIBRARY_DEFAULTS[s.id].data); else getSongDataFromDB(s.id).then(d => { if(d) executePlayMusic(s.id, d.data); }); renderMusicPages(); }
+function playMasterMusic(t) { 
+    if(isShuffleMode) return; 
+    const k = userMusicConfig[t]; 
+    gsap.killTweensOf(localAudio);
+    if(!k) { 
+        gsap.to(localAudio, { volume: 0, duration: 1, onComplete: () => {
+            localAudio.pause(); 
+            currentMusicKey = null; 
+        }});
+        return; 
+    }
+    if (currentMusicKey === k && localAudio.src) {
+        if (localAudio.paused) localAudio.play().catch(e=>{});
+        gsap.to(localAudio, { volume: bgmVolume, duration: 1 });
+        return; 
+    }
+    let fadeOutDuration = (localAudio.src && !localAudio.paused) ? 1 : 0;
+
+    gsap.to(localAudio, { 
+        volume: 0, 
+        duration: fadeOutDuration, 
+        onComplete: () => {
+            currentMusicKey = k; 
+            localAudio.volume = 0;
+
+            const playAndFadeIn = (songId, songData) => {
+                executePlayMusic(songId, songData);
+                gsap.to(localAudio, { volume: bgmVolume, duration: 1.5, ease: "power1.inOut" });
+            };
+
+            if(MUSIC_LIBRARY_DEFAULTS[k]) {
+                playAndFadeIn(k, MUSIC_LIBRARY_DEFAULTS[k].data || '');
+            } else {
+                getSongDataFromDB(k).then(d => { if(d) playAndFadeIn(k, d.data || ''); });
+            }
+        }
+    });
+}
+function executePlayMusic(k, d) { 
+    if(!d || d.includes('[[')) { $('custom-player-ui').style.display = 'none'; localAudio.pause(); return; }
+    $('custom-player-ui').style.display = 'flex'; localAudio.pause(); localAudio.loop = !isShuffleMode; currentPlaybackSpeed = 1.0; 
+    if($('speed-dragger')) $('speed-dragger').innerText = "1.0x"; startProgressTimer(); 
+    try { 
+        const isUrlOrPath = d.startsWith('http://') || d.startsWith('https://') || d.startsWith('data:') || d.startsWith('./') || d.startsWith('/');
+        if(isUrlOrPath) { localAudio.src = new URL(d, window.location.href).href; localAudio.play().catch(e => {}); } 
+        else { const byteChars = atob(d); const byteNums = new Array(byteChars.length); for (let i = 0; i < byteChars.length; i++) byteNums[i] = byteChars.charCodeAt(i); localAudio.src = URL.createObjectURL(new Blob([new Uint8Array(byteNums)], {type: 'audio/mp3'})); localAudio.play().catch(e => {}); } 
+    } catch(e) { $('custom-player-ui').style.display = 'none'; } 
+}
+localAudio.addEventListener('ended', () => { if(isShuffleMode) playRandomSong(); });
+
+function calculateShadow(hex, p) { if(!hex || hex.length < 7) hex = "#ff99cc"; let r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16); r = Math.floor(r * (100 + p) / 100); g = Math.floor(g * (100 + p) / 100); b = Math.floor(b * (100 + p) / 100); return `rgb(${Math.max(0, r)},${Math.max(0, g)},${Math.max(0, b)})`; } 
+function updateFileLabel(i, t, l) { if($(i).files.length > 0) { $(t).innerText = "ĐÃ CHỌN"; $(l).style.background = "#ff99cc"; $(l).style.color = "#000"; } }
+function processAndSaveImage(i, k, cb) { const f = $(i).files[0]; if(!f) { if(cb) cb(); return; } const r = new FileReader(); r.onload = (e) => { const img = new Image(); img.onload = () => { const cv = document.createElement('canvas'), cx = cv.getContext('2d'); let w = img.width, h = img.height, MAX = 800; if(w > h && w > MAX) { h *= MAX / w; w = MAX; } else if(h > MAX) { w *= MAX / h; h = MAX; } cv.width = w; cv.height = h; cx.drawImage(img, 0, 0, w, h); try { localStorage.setItem(k, cv.toDataURL('image/jpeg', 0.6)); if(cb) cb(); } catch(err) { if(cb) cb(); } }; img.src = e.target.result; }; r.readAsDataURL(f); }
+
+function loadSavedSettings() { 
+    $('vol-bgm').value = bgmVolume; $('vol-sfx').value = sfxVolume; const r = document.documentElement; const keys = ['cfg_bg','cfg_brd','cfg_bdr','cfg_txt','cfg_btn'], props = ['--game-bg-color','--game-board-color','--game-border-color','--game-text-color','--game-btn-color']; 
+    keys.forEach((k, i) => { const v = localStorage.getItem(k); if(v) { r.style.setProperty(props[i], v); const inp = $(k.replace('_', '-')); if(inp) inp.value = v; if(k === 'cfg_btn') r.style.setProperty('--game-btn-shadow', calculateShadow(v, -35)); } }); 
+    const bg = localStorage.getItem('bg_v4'); if(bg) { document.body.style.backgroundImage = `url("${bg}")`; $('bg-overlay').style.display = 'block'; } 
+    const cd = localStorage.getItem('cd_v4'); if(cd) { document.documentElement.style.setProperty('--custom-card-back', `url("${cd}")`); $('deck-back-face').innerText = ''; } 
+}
+function executeSaveSettings() { 
+    localStorage.setItem('vol_bgm', bgmVolume); localStorage.setItem('vol_sfx', sfxVolume); const ids = ['cfg-bg','cfg-board','cfg-border','cfg-text','cfg-btn'], keys = ['cfg_bg','cfg_brd','cfg_bdr','cfg_txt','cfg_btn']; 
+    ids.forEach((id, i) => { localStorage.setItem(keys[i], $(id).value); }); 
+    processAndSaveImage('upload-bg', 'bg_v4', () => { processAndSaveImage('upload-card', 'cd_v4', () => { loadSavedSettings(); closeModal('overlay-settings'); }); }); 
+}
+function clearSavedData() { localStorage.clear(); indexedDB.deleteDatabase(DB_NAME); location.reload(); }
+loadSavedSettings();
+
+function switchScreen(target, btn) { 
+    if(btn) { const drop = $('water-drop-fx'), rect = btn.getBoundingClientRect(); drop.style.left = (rect.left + rect.width / 2) + 'px'; drop.style.top = (rect.top + rect.height / 2) + 'px'; drop.classList.remove('water-drop-active'); void drop.offsetWidth; drop.classList.add('water-drop-active'); } 
+    const glow = $('glow-transition'); glow.style.display = 'block'; 
+    gsap.to(glow, { opacity: 1, duration: 0.3, onComplete: () => { document.querySelectorAll('.screen-container').forEach(el => el.style.display = 'none'); $(target).style.display = 'flex'; gsap.to(glow, { opacity: 0, duration: 0.3, onComplete: () => glow.style.display = 'none' }); } }); 
+}
+function customAlert(title, text, btnText, callback) { $('alert-title').innerText = title; $('alert-text').innerText = text; $('alert-btn').innerText = btnText; $('alert-btn').onclick = function() { closeModal('overlay-custom-alert'); if(callback) callback(); }; openModal('overlay-custom-alert'); }
+function hubClick(type, btn) { if(type === 'duaxi') { customAlert("THÔNG BÁO", "chào mừng bông hồng đẹp nhất thế gian này đến với trò chơi đua xì nháaa, à bật mí nè nếu chơi đủ lâu sẽ có bất ngờ đặt biệt á!!!", "VÀO GAME", () => switchScreen('menu-screen', btn)); } else { customAlert("THÔNG BÁO", "cái này chỉ để giết thời gian hoi, phần chính là ở bên đua xì á. Nếu em có chơi bên đây thì vừa bật nhạc vừa chơi cho đỡ chán, nó nằm ở setting á. Có thể tự thêm nhạc nè.", "OK LUN", () => switchScreen('mini-game-menu-screen', btn)); } }
+function navigateMainMenu(targetId, btnEl) { switchScreen(targetId, btnEl); }
+function quitToScreen(target) { 
+
+    SnakeGame.stop(); 
+
+    TetrisGame.stop(); 
+
+    ChickenGame.stop(); 
+
+    closeModal('overlay-victory'); 
+
+    switchScreen(target); 
+
+    if(target === 'main-hub-screen' || target === 'menu-screen' || target === 'mini-game-menu-screen') {
+
+        playMasterMusic('menu');
+
+    }
+
+}
+let currentTargetGame = null, currentGameDifficulty = 'normal';
+function showDifficulty(gameName) { currentTargetGame = gameName; openModal('overlay-difficulty'); }
+function selectDifficulty(diff) { currentGameDifficulty = diff; closeModal('overlay-difficulty'); switchScreen(`${currentTargetGame}-screen`); setTimeout(() => { if(currentTargetGame === 'snake') SnakeGame.startReal(); else if(currentTargetGame === 'tetris') TetrisGame.startReal(); }, 400); }
+function launchMiniGame(game, btnEl) { switchScreen(`${game}-screen`, btnEl); setTimeout(() => ChickenGame.start(), 400); }
+
+let inputQueue = [], isTetrisDownPressed = false;
+function setInput(act) { if(!act) return; if(inputQueue.length > 0 && inputQueue[inputQueue.length - 1] === act) return; if(inputQueue.length < 5) inputQueue.push(act); }
+function bindControls(prefix) { 
+    ['up', 'down', 'left', 'right'].forEach(dir => { const btn = document.getElementById(`btn-${dir}-${prefix}`); if(btn) { const handlePress = (e) => { e.preventDefault(); if(dir === 'down' && prefix === 'tetris') isTetrisDownPressed = true; setInput(dir.toUpperCase()); }; const handleRelease = (e) => { e.preventDefault(); if(dir === 'down' && prefix === 'tetris') isTetrisDownPressed = false; }; btn.addEventListener('touchstart', handlePress, {passive: false}); btn.addEventListener('mousedown', handlePress); btn.addEventListener('touchend', handleRelease, {passive: false}); btn.addEventListener('mouseup', handleRelease); btn.addEventListener('mouseleave', handleRelease); } }); 
+    const btnA = document.getElementById(`btn-a-${prefix}`); if(btnA) { const handleAPress = (e) => { e.preventDefault(); setInput('A'); }; btnA.addEventListener('touchstart', handleAPress, {passive: false}); btnA.addEventListener('mousedown', handleAPress); } 
+}
+bindControls('snake'); bindControls('tetris');
+document.addEventListener('keydown', (e) => { if(e.key === 'ArrowUp' || e.key === 'w') setInput('UP'); if(e.key === 'ArrowDown' || e.key === 's'){ setInput('DOWN'); isTetrisDownPressed = true; } if(e.key === 'ArrowLeft' || e.key === 'a') setInput('LEFT'); if(e.key === 'ArrowRight' || e.key === 'd') setInput('RIGHT'); if(e.key === ' ' || e.key === 'Enter') setInput('A'); });
+document.addEventListener('keyup', (e) => { if(e.key === 'ArrowDown' || e.key === 's') isTetrisDownPressed = false; });
+
+const SnakeGame = (function() {
+    const canvas = document.getElementById('snake-canvas'), ctx = canvas.getContext('2d'), sz = 15, cols = 20, rows = 30; let snake, food, dx, dy, score, loopId, last, speed, isGO;
+    function startReal() { inputQueue = []; isGO = false; speed = currentGameDifficulty === 'easy' ? 160 : (currentGameDifficulty === 'hard' ? 70 : (currentGameDifficulty === 'expert' ? 40 : 120)); snake = [{x: 10, y: 15}, {x: 10, y: 16}, {x: 10, y: 17}]; dx = 0; dy = -1; score = 0; place(); document.getElementById('snake-score').innerText = `Điểm: ${score}`; document.getElementById('snake-go').style.display = 'none'; cancelAnimationFrame(loopId); last = 0; loopId = requestAnimationFrame(loop); }
+    function place() { food = { x: Math.floor(Math.random() * cols), y: Math.floor(Math.random() * rows) }; }
+    function update() { if(isGO) return; while(inputQueue.length > 0) { let a = inputQueue.shift(); if(a === 'UP' && dy === 0) { dx = 0; dy = -1; break; } if(a === 'DOWN' && dy === 0) { dx = 0; dy = 1; break; } if(a === 'LEFT' && dx === 0) { dx = -1; dy = 0; break; } if(a === 'RIGHT' && dx === 0) { dx = 1; dy = 0; break; } } let head = { x: snake[0].x + dx, y: snake[0].y + dy }; if(head.x < 0 || head.x >= cols || head.y < 0 || head.y >= rows || snake.some(s => s.x === head.x && s.y === head.y)) { isGO = true; playSfx('boom'); document.getElementById('snake-final-score').innerText = `Điểm: ${score}`; document.getElementById('snake-go').style.display = 'flex'; return; } snake.unshift(head); if(head.x === food.x && head.y === food.y) { playSfx('eat'); score += 10; document.getElementById('snake-score').innerText = `Điểm: ${score}`; place(); } else { snake.pop(); } }
+    function draw() { ctx.fillStyle = '#0a0508'; ctx.fillRect(0, 0, 300, 450); ctx.fillStyle = '#e74c3c'; ctx.fillRect(food.x * sz, food.y * sz, sz - 1, sz - 1); snake.forEach((s, i) => { ctx.fillStyle = i === 0 ? '#2ecc71' : '#27ae60'; ctx.fillRect(s.x * sz, s.y * sz, sz - 1, sz - 1); }); }
+    function loop(t) { if(isGO) return; if(!last) last = t; if(t - last > speed) { update(); draw(); last = t; } loopId = requestAnimationFrame(loop); }
+    return { startReal, stop: () => { isGO = true; cancelAnimationFrame(loopId); } };
+})();
+
+const TetrisGame = (function() {
+    const canvas = document.getElementById('tetris-canvas'), ctx = canvas.getContext('2d'), cols = 10, rows = 20, sq = 24, pieces = [ [[1, 1, 1, 1]], [[1, 1], [1, 1]], [[0, 1, 0], [1, 1, 1]], [[1, 0, 0], [1, 1, 1]], [[0, 0, 1], [1, 1, 1]], [[0, 1, 1], [1, 1, 0]], [[1, 1, 0], [0, 1, 1]] ], colors = ["#00FFFF", "#FFD700", "#FF00FF", "#FF4500", "#0088FF", "#00FF00", "#FF0000"]; let board, score, loopId, startT, speed, isGO; let p = { x: 3, y: 0, shape: [], color: "" };
+    function startReal() { inputQueue = []; isTetrisDownPressed = false; isGO = false; speed = currentGameDifficulty === 'easy' ? 900 : (currentGameDifficulty === 'hard' ? 300 : (currentGameDifficulty === 'expert' ? 150 : 600)); board = Array.from({length: rows}, () => Array(cols).fill("#0a0508")); score = 0; document.getElementById('tetris-score').innerText = `Điểm: ${score}`; document.getElementById('tetris-go').style.display = 'none'; spawn(); cancelAnimationFrame(loopId); startT = 0; loopId = requestAnimationFrame(loop); }
+    function spawn() { let r = Math.floor(Math.random() * pieces.length); p.shape = pieces[r]; p.color = colors[r]; p.x = 3; p.y = 0; if(coll(0, 0, p.shape)) { isGO = true; playSfx('boom'); document.getElementById('tetris-final-score').innerText = `Điểm: ${score}`; document.getElementById('tetris-go').style.display = 'flex'; } }
+    function coll(xo, yo, sh) { for(let r = 0; r < sh.length; r++) { for(let c = 0; c < sh[r].length; c++) { if(!sh[r][c]) continue; let nx = p.x + c + xo; let ny = p.y + r + yo; if(nx < 0 || nx >= cols || ny >= rows) return true; if(ny < 0) continue; if(board[ny][nx] !== "#0a0508") return true; } } return false; }
+    function drawSq(x, y, c) { ctx.fillStyle = "#0a0508"; ctx.fillRect(x*sq, y*sq, sq, sq); ctx.lineWidth = 4; ctx.strokeStyle = c; ctx.strokeRect(x*sq+2, y*sq+2, sq-4, sq-4); }
+    function draw() { ctx.fillStyle = "#0a0508"; ctx.fillRect(0, 0, 240, 480); for(let r = 0; r < rows; r++) { for(let c = 0; c < cols; c++) { if(board[r][c] !== "#0a0508") { drawSq(c, r, board[r][c]); } } } if(!isGO) { p.shape.forEach((r, ri) => { r.forEach((v, ci) => { if(v) drawSq(p.x + ci, p.y + ri, p.color); }); }); } }
+    function lock() { if(isGO) return; p.shape.forEach((r, ri) => { r.forEach((v, ci) => { if(v && p.y + ri >= 0) { board[p.y + ri][p.x + ci] = p.color; } }); }); let lines = 0; for(let r = 0; r < rows; r++) { if(board[r].every(v => v !== "#0a0508")) { board.splice(r, 1); board.unshift(Array(cols).fill("#0a0508")); lines++; } } if(lines > 0) { playSfx('eat'); score += lines * 100; $('tetris-score').innerText = `Điểm: ${score}`; } spawn(); }
+    function rotate() { let next = []; for(let i = 0; i < p.shape[0].length; i++) { let row = []; for(let j = p.shape.length - 1; j >= 0; j--) { row.push(p.shape[j][i]); } next.push(row); } let k = 0; if(coll(0, 0, next)) { if(!coll(1, 0, next)) k = 1; else if(!coll(-1, 0, next)) k = -1; else k = null; } if(k !== null) { p.x += k; p.shape = next; playSfx('move'); } }
+    function update() { if(inputQueue.length > 0) { let a = inputQueue.shift(); if(a === 'LEFT' && !coll(-1, 0, p.shape)) { p.x--; playSfx('move'); } else if(a === 'RIGHT' && !coll(1, 0, p.shape)) { p.x++; playSfx('move'); } else if(a === 'A' || a === 'UP') { rotate(); } } }
+    function loop(t) { if(isGO) return; if(!startT) startT = t; update(); let s = isTetrisDownPressed ? 30 : speed; if(t - startT > s) { if(!coll(0, 1, p.shape)) { p.y++; } else { lock(); } startT = t; } draw(); loopId = requestAnimationFrame(loop); }
+    return { startReal, stop: () => { isGO = true; isTetrisDownPressed = false; cancelAnimationFrame(loopId); } };
+})();
+
+const ChickenGame = (function() {
+    const canvas = document.getElementById('chicken-canvas'), ctx = canvas.getContext('2d'); let player, bullets, enemies, enemyBullets, particles, score, loopId, frameCount, isDragging = false, isGO = false, gameMode = 'NORMAL', nextMilestone = 500, wavePhase = 0, waveDelay = 0, globalSpeedMult = 1.0; const chickenSize = 14, padding = 15, chickensPerRow = 7, rowSpacing = 35;
+    function getCanvasPos(e) { const rect = canvas.getBoundingClientRect(), clientX = e.touches ? e.touches[0].clientX : e.clientX, clientY = e.touches ? e.touches[0].clientY : e.clientY; return { x: (clientX - rect.left) * (canvas.width / rect.width), y: (clientY - rect.top) * (canvas.height / rect.height) }; }
+    canvas.addEventListener('mousedown', (e) => { if(!isGO) { isDragging = true; let pos = getCanvasPos(e); player.x = Math.max(16, Math.min(304, pos.x)); player.y = Math.max(16, Math.min(664, pos.y)); }}); canvas.addEventListener('mousemove', (e) => { if(isDragging && !isGO) { let pos = getCanvasPos(e); player.x = Math.max(16, Math.min(304, pos.x)); player.y = Math.max(16, Math.min(664, pos.y)); }}); canvas.addEventListener('mouseup', () => isDragging = false); canvas.addEventListener('mouseleave', () => isDragging = false); canvas.addEventListener('touchstart', (e) => { if(!isGO) { e.preventDefault(); isDragging = true; let pos = getCanvasPos(e); player.x = Math.max(16, Math.min(304, pos.x)); player.y = Math.max(16, Math.min(664, pos.y)); } }, {passive: false}); canvas.addEventListener('touchmove', (e) => { if(isDragging && !isGO) { e.preventDefault(); let pos = getCanvasPos(e); player.x = Math.max(16, Math.min(304, pos.x)); player.y = Math.max(16, Math.min(664, pos.y)); } }, {passive: false}); canvas.addEventListener('touchend', () => isDragging = false);
+    function reset() { player = { x: 160, y: 600, size: 16, hp: 10 }; bullets = []; enemies = []; enemyBullets = []; particles = []; score = 0; frameCount = 0; isDragging = false; isGO = false; gameMode = 'NORMAL'; nextMilestone = 500; globalSpeedMult = 1.0; updateHeaderUI(); document.getElementById('chicken-go').style.display = 'none'; }
+    function updateHeaderUI() { document.getElementById('chicken-score').innerText = `Điểm: ${score} | ❤️ ${player.hp}`; }
+    function boom(x, y, color) { for(let i = 0; i < 15; i++) particles.push({ x: x, y: y, vx: (Math.random() - 0.5) * 6, vy: (Math.random() - 0.5) * 6, life: 1, color: color || '#f1c40f' }); }
+    function spawnRowOfChickens(rowCount) { let startX = (320 - (chickensPerRow * 35)) / 2; for(let r = 0; r < rowCount; r++) { for(let c = 0; c < chickensPerRow; c++) { enemies.push({ x: startX + c * 35 + 15, y: -50 - (r * 35), originX: startX + c * 35 + 15, originY: 50 + (r * 35), size: 14, hp: 1, state: 'ENTER', timer: 0, vx: (Math.random() > 0.5 ? 1 : -1) * 1.5 * globalSpeedMult, vy: (Math.random() > 0.5 ? 1 : -1) * 1.5 * globalSpeedMult }); } } }
+    function checkMilestone() { if (score > 0 && score % 50000 === 0) { gameMode = 'SUPER_WAVE'; wavePhase = 1; waveDelay = 60; globalSpeedMult += 0.1; nextMilestone = score + 500; } else if (score > 0 && score % 1000 === 0) { gameMode = 'SWARM'; wavePhase = 1; waveDelay = 60; nextMilestone = score + 500; } else if (score >= nextMilestone) { gameMode = 'WAVE'; wavePhase = 1; waveDelay = 60; nextMilestone = score + 500; } }
+    function triggerPlayerHit() { playSfx('boom'); boom(player.x, player.y, '#3498db'); player.hp--; updateHeaderUI(); if(player.hp <= 0) { isGO = true; document.getElementById('chicken-final-score').innerText = `Điểm: ${score}`; document.getElementById('chicken-go').style.display = 'flex'; } }
+    function update() { if(isGO) return; frameCount++; if(isDragging && frameCount % 8 === 0) { bullets.push({ x: player.x, y: player.y - 16, speed: 12, hp: 3 }); playSfx('shoot'); } for(let i = bullets.length - 1; i >= 0; i--) { let b = bullets[i]; b.y -= b.speed; if(b.y < -20) { bullets.splice(i, 1); continue; } for(let j = enemies.length - 1; j >= 0; j--) { let e = enemies[j]; if(Math.sqrt((b.x - e.x) ** 2 + (b.y - e.y) ** 2) < e.size + 8) { boom(e.x, e.y); playSfx('eat'); e.hp--; b.hp--; if(e.hp <= 0) { enemies.splice(j, 1); score += 5; updateHeaderUI(); checkMilestone(); } if(b.hp <= 0) { bullets.splice(i, 1); break; } } } } if(gameMode === 'NORMAL') { if(frameCount % 50 === 0) { let spawnX = Math.random() * 280 + 20; enemies.push({ x: spawnX, y: -20, originY: -20, size: 14, hp: 1, state: 'FALL', speed: 1.5 * globalSpeedMult }); } } else if (gameMode === 'WAVE' || gameMode === 'SUPER_WAVE') { if (enemies.length === 0) { if (waveDelay > 0) waveDelay--; else { if (wavePhase <= 3) { spawnRowOfChickens(wavePhase); wavePhase++; } else { gameMode = 'NORMAL'; } } } } else if (gameMode === 'SWARM') { if (enemies.length === 0) { if (waveDelay > 0) waveDelay--; else { if (wavePhase === 1) { spawnRowOfChickens(3); wavePhase++; } else { gameMode = 'NORMAL'; } } } } for(let j = enemies.length - 1; j >= 0; j--) { let e = enemies[j]; if(e.state === 'FALL') { e.y += e.speed; if(e.y > 680) { enemies.splice(j, 1); triggerPlayerHit(); } } else if(e.state === 'ENTER') { e.y += 3 * globalSpeedMult; if (e.y >= e.originY) { e.y = e.originY; if(gameMode === 'SWARM') e.state = 'FREE'; else if(gameMode === 'SUPER_WAVE') e.state = 'SUPER_IDLE'; else e.state = 'IDLE'; e.timer = 60 + Math.random() * 60; } } else if(e.state === 'IDLE') { e.timer--; if(e.timer <= 0) { e.state = 'WARN'; e.timer = 40; playSfx('warn'); } } else if(e.state === 'WARN') { e.timer--; if(e.timer <= 0) { e.state = 'DIVE'; } } else if(e.state === 'DIVE') { e.y += 6 * globalSpeedMult; if(e.y > canvas.height) { e.y = canvas.height; e.state = 'RETREAT'; triggerPlayerHit(); if(isGO) return; } } else if(e.state === 'RETREAT') { e.y -= 2 * globalSpeedMult; if(e.y <= e.originY) { e.y = e.originY; e.state = 'IDLE'; e.timer = 120 + Math.random() * 100; } } else if(e.state === 'FREE') { e.x += e.vx; e.y += e.vy; if(e.x < 20 || e.x > 300) e.vx *= -1; if(e.y < 20 || e.y > 400) e.vy *= -1; if(Math.random() < 0.005) enemyBullets.push({x: e.x, y: e.y + 14, speed: 4 * globalSpeedMult}); } else if(e.state === 'SUPER_IDLE') { e.x += Math.sin(frameCount / 20 + j) * 2; if(Math.random() < 0.005) enemyBullets.push({x: e.x, y: e.y + e.size, speed: 5 * globalSpeedMult}); e.timer--; if(e.timer <= 0) { e.state = 'WARN_SUPER'; e.timer = 40; playSfx('warn'); } } else if(e.state === 'WARN_SUPER') { e.timer--; if(e.timer <= 0) e.state = 'DIVE_SUPER'; } else if(e.state === 'DIVE_SUPER') { e.y += 7 * globalSpeedMult; if(e.y > canvas.height) { e.y = canvas.height; e.state = 'RETREAT_SUPER'; triggerPlayerHit(); if(isGO) return; } } else if(e.state === 'RETREAT_SUPER') { e.y -= 3 * globalSpeedMult; if(e.y <= e.originY) { e.y = e.originY; e.state = 'WAIT_SUPER'; e.timer = 60; } } else if(e.state === 'WAIT_SUPER') { e.timer--; if(e.timer <= 0) { e.state = 'SUPER_IDLE'; e.timer = 100 + Math.random() * 100; } } if(!isGO && Math.sqrt((e.x - player.x) ** 2 + (e.y - player.y) ** 2) < 25) { enemies.splice(j, 1); triggerPlayerHit(); } } for(let k = enemyBullets.length - 1; k >= 0; k--) { let eb = enemyBullets[k]; eb.y += eb.speed; if(eb.y > 690) { enemyBullets.splice(k, 1); continue; } if(Math.sqrt((eb.x - player.x) ** 2 + (eb.y - player.y) ** 2) < 15) { enemyBullets.splice(k, 1); triggerPlayerHit(); } } particles.forEach((p, i) => { p.x += p.vx; p.y += p.vy; p.life -= 0.05; if(p.life <= 0) particles.splice(i, 1); }); }
+    function draw() { ctx.fillStyle = '#0a0508'; ctx.fillRect(0, 0, 320, 680); ctx.fillStyle = '#fff'; for(let i = 0; i < 5; i++) { ctx.fillRect(Math.random() * canvas.width, Math.random() * canvas.height, 1, 1); } ctx.fillStyle = '#3498db'; ctx.beginPath(); ctx.moveTo(player.x, player.y - 16); ctx.lineTo(player.x - 16, player.y + 16); ctx.lineTo(player.x + 16, player.y + 16); ctx.fill(); bullets.forEach(b => { ctx.fillStyle = b.hp === 3 ? '#f1c40f' : (b.hp === 2 ? '#e67e22' : '#e74c3c'); ctx.fillRect(b.x - 3, b.y - 5, 6, 12); }); ctx.fillStyle = '#2ecc71'; enemyBullets.forEach(eb => { ctx.beginPath(); ctx.arc(eb.x, eb.y, 4, 0, Math.PI * 2); ctx.fill(); }); enemies.forEach(e => { let color = '#e74c3c'; if ((e.state === 'WARN' || e.state === 'WARN_SUPER') && frameCount % 6 < 3) color = '#ffffff'; ctx.fillStyle = color; ctx.beginPath(); ctx.arc(e.x, e.y, e.size, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#fff'; ctx.fillRect(e.x - 6, e.y - 2, 4, 4); ctx.fillRect(e.x + 2, e.y - 2, 4, 4); }); particles.forEach(p => { ctx.fillStyle = p.color; ctx.globalAlpha = Math.max(0, p.life); ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1; }); if(gameMode !== 'NORMAL' && enemies.length > 0) { ctx.fillStyle = "rgba(255,255,255,0.15)"; ctx.font = "900 35px Arial"; ctx.textAlign = "center"; let txt = gameMode === 'WAVE' ? `SÓNG: ${wavePhase - 1}/3` : (gameMode === 'SUPER_WAVE' ? `TRÙM SÓNG: ${wavePhase - 1}/3` : "QUẦN THẢO"); ctx.fillText(txt, canvas.width / 2, canvas.height / 2); } }
+    function loop() { if(isGO) return; update(); draw(); loopId = requestAnimationFrame(loop); }
+    return { start: () => { reset(); cancelAnimationFrame(loopId); loopId = requestAnimationFrame(loop); }, stop: () => { isGO = true; cancelAnimationFrame(loopId); } };
+})();
+
+const GameState = { status: 'INIT', gameMode: 'normal', selectedCard: -1, deck: [], suits: ['♠', '♣', '♦', '♥'], suitClasses: ['', '', 'suit-red', 'suit-red'], playerNames: ['Bích', 'Chuồn', 'Rô', 'Cơ'], positions: [6, 6, 6, 6], colMapping: [0, 1, 2, 3], drawHistory: [], trapTargets: [], trapRevealed: [false, false, false, false, false], trapHistory: [] };
+function buildAndShuffleDeck() { let deck = []; for(let i = 0; i < 4; i++) for(let j = 0; j < 13; j++) deck.push(i); for (let i = deck.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [deck[i], deck[j]] = [deck[j], deck[i]]; } return deck; }
+
+function navigateMenu(m, btn) { 
+    initSound(); GameState.gameMode = m; GameState.selectedCard = -1; 
+    const drop = $('water-drop-fx'); const rect = btn.getBoundingClientRect(); 
+    drop.style.left = (rect.left + rect.width / 2) + 'px'; drop.style.top = (rect.top + rect.height / 2) + 'px'; drop.classList.add('water-drop-active'); 
+    setTimeout(() => { 
+        const glow = $('glow-transition'); glow.style.display = 'block'; 
+        gsap.to(glow, { opacity: 1, duration: 0.3, onComplete: () => { 
+            document.querySelectorAll('.screen-container').forEach(el => el.style.display = 'none');
+            if (m === 'tournament') { openModal('overlay-names'); gsap.set("#name-box input", { opacity: 0, x: -30 }); gsap.set("#btn-start-tour", { opacity: 0 }); gsap.to("#name-box input", { opacity: 1, x: 0, duration: 0.6, stagger: 0.25 }); gsap.to("#btn-start-tour", { opacity: 1, duration: 0.6, delay: 1.2 }); } 
+            else if (m === 'normal') { $('menu-screen').style.display = 'flex'; openModal('overlay-card-select'); const cards = document.querySelectorAll('.selectable-card'); cards.forEach(c => { c.classList.remove('can-hover'); gsap.killTweensOf(c); }); setTimeout(() => { gsap.fromTo(cards, { opacity: 0, scale: 0, rotationY: 180 }, { opacity: 1, scale: 1, rotationY: 0, duration: 0.5, stagger: 0.1, ease: "back.out(1.2)", onComplete: () => { cards.forEach(c => { gsap.set(c, {clearProps: "all"}); c.classList.add('can-hover'); }); } }); }, 50); } 
+            gsap.to(glow, { opacity: 0, duration: 0.4, delay: 0.1, onComplete: () => glow.style.display = 'none' }); 
+        }}); 
+    }, 300); 
+}
+
+function selectCardToRace(idx, event) { 
+    initSound(); playSfx('click'); GameState.selectedCard = idx; 
+    const drop = $('water-drop-fx'); drop.style.left = event.clientX + 'px'; drop.style.top = event.clientY + 'px'; drop.classList.remove('water-drop-active'); void drop.offsetWidth; drop.classList.add('water-drop-active'); 
+    const selectedCardEl = event.currentTarget, allCards = document.querySelectorAll('.selectable-card'); 
+    allCards.forEach(c => { c.style.animation = 'none'; c.classList.remove('can-hover'); }); 
+    allCards.forEach(c => { if (c !== selectedCardEl) gsap.to(c, { opacity: 0, scale: 0.8, duration: 0.3 }); }); 
+    gsap.to(selectedCardEl, { opacity: 0, duration: 0.8, ease: "power1.inOut" }); 
+    gsap.to(selectedCardEl, { x: "random(-3, 3)", y: "random(-3, 3)", rotation: "random(-2, 2)", duration: 0.08, repeat: 9, yoyo: true, onComplete: () => { 
+        const glow = $('glow-transition'); glow.style.display = 'block'; 
+        gsap.to(glow, { opacity: 1, duration: 0.3, onComplete: () => { 
+            closeModal('overlay-card-select'); document.querySelectorAll('.screen-container').forEach(el => el.style.display = 'none'); $('game-screen').style.display = 'flex';
+            setTimeout(() => initGameRace(), 50); gsap.to(glow, { opacity: 0, duration: 0.4, delay: 0.1, onComplete: () => glow.style.display = 'none' }); 
+        }}); 
+    }}); 
+}
+
+function confirmPlayerNames() { 
+    initSound(); for(let i = 0; i < 4; i++) { let v = $(`player-name-${i}`).value.trim(); if(v) GameState.playerNames[i] = v; } closeModal('overlay-names'); 
+    const glow = $('glow-transition'); glow.style.display = 'block'; 
+    gsap.to(glow, { opacity: 1, duration: 0.3, onComplete: () => { document.querySelectorAll('.screen-container').forEach(el => el.style.display = 'none'); $('game-screen').style.display = 'flex'; setTimeout(() => initGameRace(), 50); gsap.to(glow, { opacity: 0, duration: 0.4, delay: 0.1, onComplete: () => glow.style.display = 'none' }); }}); 
+}
+
+function getPercentageCoordinate(row, col) { return { left: `${(col * 20) + 10}%`, top: `${(row * (100 / 7)) + (100 / 14)}%` }; }
+
+function initGameRace() { 
+
+    if(!isShuffleMode) playMasterMusic('game');
+
+    GameState.positions = [6, 6, 6, 6];
+
+    GameState.drawHistory = [];
+
+    GameState.trapRevealed = [false, false, false, false, false];
+
+    GameState.trapHistory = [];
+
+    GameState.status = 'INIT';
+
+    gsap.killTweensOf('.card-actor, .trap-actor');
+
+    const grid = $('visual-grid'); grid.innerHTML = ''; 
+
+    for(let i = 0; i < 7; i++) { 
+
+        let r = document.createElement('div'); r.className = 'visual-row'; 
+
+        for(let j = 0; j < 5; j++) { 
+
+            let c = document.createElement('div'); 
+
+            c.className = (j == 4) ? 'visual-cell visual-trap-cell' : 'visual-cell'; 
+
+            r.appendChild(c); 
+
+        } 
+
+        grid.appendChild(r); 
+
+    } 
+
+    const lay = $('entity-layer'); lay.innerHTML = ''; GameState.deck = buildAndShuffleDeck(); GameState.trapTargets = []; 
+
+    for(let i = 0; i < 5; i++) GameState.trapTargets.push(GameState.deck.pop()); GameState.colMapping = [0, 1, 2, 3]; 
+
+    for (let i = 3; i > 0; i--) { let j = Math.floor(Math.random() * (i + 1)); [GameState.colMapping[i], GameState.colMapping[j]] = [GameState.colMapping[j], GameState.colMapping[i]]; } 
+
+    GameState.status = 'BUSY'; $('system-status-msg').innerText = "ĐANG XÀO BÀI NÈ CHỜ TÍ..."; $('system-status-msg').style.color = "var(--game-text-color)"; 
+
+    let shuffleCards = [], deckWrapper = $('deck-wrapper-3d'), deckRect = deckWrapper.getBoundingClientRect(); deckWrapper.style.opacity = '0'; 
+
+    for(let i = 0; i < 5; i++) { 
+
+        let sc = document.createElement('div'); sc.className = 'deck-card-face face-back'; 
+
+        sc.style.width = 'var(--card-width)'; sc.style.height = 'var(--card-height)'; sc.style.position = 'fixed'; 
+
+        sc.style.top = '50%'; sc.style.left = '50%'; sc.style.transform = 'translate(-50%, -50%)'; sc.style.zIndex = 10000 + i; 
+
+        document.body.appendChild(sc); shuffleCards.push(sc); 
+
+    } 
+
+    let shuffleTl = gsap.timeline({ onComplete: () => { 
+
+        $('system-status-msg').innerText = "CHIA BÀI RA NÈ..."; const dealTl = gsap.timeline({ onComplete: () => { GameState.status = 'IDLE'; $('system-status-msg').innerText = "CHẠM BỘ BÀI ĐỂ RÚT NHA BÉ"; } }); 
+
+        for(let i = 0; i < 5; i++) { 
+
+            let t = document.createElement('div'); t.id = `trap-entity-${i}`; t.className = 'trap-actor'; t.innerText = '?'; lay.appendChild(t); 
+
+            let targetPos = getPercentageCoordinate(5 - i, 4); gsap.set(t, { left: "50%", top: "120%", xPercent: -50, yPercent: -50, scale: 0.5 }); 
+
+            dealTl.to(t, { left: targetPos.left, top: targetPos.top, scale: 1, duration: 0.3, ease: "back.out(1.2)", onStart: () => playSfx('deal') }, "-=0.15"); 
+
+        } 
+
+        for(let i = 0; i < 4; i++) { 
+
+            let a = document.createElement('div'); a.id = `ace-entity-${i}`; a.className = `card-actor ${GameState.suitClasses[i]}`; 
+
+            let isSelected = (GameState.gameMode === 'normal' && i === GameState.selectedCard), tagColor = 'var(--game-text-color)', tagText = GameState.playerNames[i] + (isSelected ? ' (EM NÈ)' : ''); 
+
+            a.innerHTML = `<div class="card-name-tag" style="color:${tagColor}">${tagText}</div>A${GameState.suits[i]}`; lay.appendChild(a); 
+
+            let targetPos = getPercentageCoordinate(6, GameState.colMapping[i]); gsap.set(a, { left: "50%", top: "120%", xPercent: -50, yPercent: -50, scale: 0.5 }); 
+
+            dealTl.to(a, { left: targetPos.left, top: targetPos.top, scale: 1, duration: 0.3, ease: "back.out(1.2)", onStart: () => playSfx('deal') }, "-=0.15"); 
+
+        } 
+
+    }}); 
+
+    for(let step = 0; step < 3; step++) shuffleTl.to(shuffleCards, { x: (index) => (index % 2 === 0 ? -40 : 40) + (Math.random() * 15), y: () => (Math.random() * 20) - 10, rotation: () => (Math.random() * 30) - 15, duration: 0.2, onStart: () => playSfx('deal') }).to(shuffleCards, { x: 0, y: 0, rotation: 0, duration: 0.2 }); 
+
+    shuffleTl.to(shuffleCards, { left: (deckRect.left + deckRect.width / 2) + 'px', top: (deckRect.top + deckRect.height / 2) + 'px', scale: deckRect.width / 45, rotation: 0, duration: 0.5, ease: "power2.inOut", onStart: () => playSfx('swoosh') }).to(shuffleCards, { opacity: 0, duration: 0.15, onStart: () => { deckWrapper.style.opacity = '1'; }, onComplete: () => shuffleCards.forEach(c => c.remove()) }); 
+
+} 
+
+function executeCardDraw() { 
+    if(GameState.status !== 'IDLE') return; GameState.status = 'BUSY'; initSound(); playSfx('flip'); 
+    if (GameState.deck.length === 0) GameState.deck = buildAndShuffleDeck(); 
+    const idx = GameState.deck.pop(); GameState.drawHistory.push(idx); $('drawn-card-result').innerText = GameState.suits[idx]; $('drawn-card-result').className = `deck-card-face face-front ${GameState.suitClasses[idx]}`; 
+    gsap.to('#deck-rotator-node', { rotationY: 180, duration: 0.4, ease: "power1.inOut", onComplete: () => { GameState.positions[idx]--; let targetPos = getPercentageCoordinate(GameState.positions[idx], GameState.colMapping[idx]); playSfx('move'); gsap.to(`#ace-entity-${idx}`, { left: targetPos.left, top: targetPos.top, duration: 0.4, onComplete: () => gsap.to('#deck-rotator-node', { rotationY: 0, duration: 0.2, onComplete: () => setTimeout(() => checkRules(idx), 100) }) }); }}); 
+}
+
+function checkRules(idx) { 
+    const h = GameState.drawHistory, len = h.length; let pSteps = 0, pType = 0; 
+    if(len >= 3 && h[len-1] === idx && h[len-2] === idx && h[len-3] === idx) { pSteps = 2; pType = 3; s_pen = true; } 
+    else if(len >= 2 && h[len-1] === idx && h[len-2] === idx) { let prevPairIdx = -1; for(let i = len - 3; i >= 1; i--) { if(h[i] === idx && h[i-1] === idx) { prevPairIdx = i - 1; break; } } if(prevPairIdx !== -1 && (len - prevPairIdx - 4) < 4) { pSteps = 1; pType = 2; } } 
+    if(pSteps > 0) { 
+        GameState.status = 'PENALTY'; playSfx('error'); let isEmNe = (GameState.gameMode === 'normal' && GameState.selectedCard === idx), msg = "";
+        if(pType === 3) msg = isEmNe ? "á à về đích nhanh quá nhá, lùi 2 ô đê" : "cút xuống 2 ô, ăn gian hả, nó ăn gian kìa bé"; else msg = isEmNe ? "ấy chết code nhầm nên lùi 1 ô thoiii" : "mày ăn gian, cút về 1 ô cho bồ tao thắng";
+        $('system-status-msg').innerText = msg; $('system-status-msg').style.color = "#ff4757"; 
+        const pCard = $(`ace-entity-${idx}`); pCard.style.zIndex = "1000"; pCard.style.cursor = "pointer"; pCard.style.pointerEvents = "auto"; 
+        let pCardFlash = gsap.to(pCard, { boxShadow: "0 0 25px var(--game-border-color)", borderColor: "#ffffff", backgroundColor: "rgba(255, 153, 204, 0.2)", duration: 0.4, yoyo: true, repeat: -1 }); let deckFlash = gsap.to($('deck-wrapper-3d'), { boxShadow: "0 0 40px #ff0000", duration: 0.3, yoyo: true, repeat: -1 });
+        pCard.onclick = function() { this.onclick = null; this.style.zIndex = "50"; this.style.cursor = "default"; this.style.pointerEvents = "none"; pCardFlash.kill(); deckFlash.kill(); gsap.set(pCard, { clearProps: "boxShadow,borderColor,backgroundColor" }); gsap.set($('deck-wrapper-3d'), { clearProps: "boxShadow" }); playSfx('error'); 
+            if(pType === 3) { h[len-1] = -1; h[len-2] = -1; h[len-3] = -1; } else if(pType === 2) { h[len-1] = -1; h[len-2] = -1; } 
+            GameState.positions[idx] = Math.min(6, GameState.positions[idx] + pSteps); let targetPos = getPercentageCoordinate(GameState.positions[idx], GameState.colMapping[idx]); 
+            gsap.to(pCard, { left: targetPos.left, top: targetPos.top, duration: 0.5, onComplete: () => checkTraps(idx) }); 
+        }; 
+    } else checkTraps(idx); 
+}
+
+function checkTraps(idx) { 
+    if(GameState.positions[idx] <= 0){ triggerVictory(idx); return; } 
+    for(let i = 0; i < 5; i++) { 
+        if(GameState.positions.every(pos => pos <= (5 - i)) && !GameState.trapRevealed[i]) { 
+            GameState.status = 'TRAP'; $('system-status-msg').innerText = "LẬT BÀI ĐÓ ĐI EM"; $('system-status-msg').style.color = "var(--game-text-color)"; 
+            const trapElement = $(`trap-entity-${i}`); trapElement.classList.add('alert-trap'); playSfx('ting'); s_trp = true;
+            let trapFlash = gsap.to(trapElement, { boxShadow: "0 0 25px var(--game-border-color)", borderColor: "#ffffff", background: "rgba(255, 153, 204, 0.2)", duration: 0.4, yoyo: true, repeat: -1, onRepeat: () => playSfx('ting') }); 
+            trapElement.onclick = function() { 
+                this.onclick = null; this.classList.remove('alert-trap'); trapFlash.kill(); gsap.set(trapElement, { clearProps: "boxShadow,borderColor,backgroundColor" }); playSfx('flip'); 
+                const s = GameState.trapTargets[i]; GameState.trapRevealed[i] = true; GameState.trapHistory.push(s); this.className = `card-actor ${GameState.suitClasses[s]}`; this.innerHTML = `A${GameState.suits[s]}`; 
+                let count = GameState.trapHistory.filter(x => x === s).length, move = (count >= 4) ? 1 : (count === 3 ? 2 : -1), isEmNe = (GameState.gameMode === 'normal' && GameState.selectedCard === s), msg = "";
+                if(move === 1) msg = isEmNe ? "em đẹp em có quyền lên 1 ô" : "thôi lên 1 ô này thì thua đi cho em thắng"; else if(move === 2) msg = isEmNe ? "adu cầm phóng lợn bay lên 2 ô!!!" : "nhờ vận khí của ẻm mày mới lên 2 ô đó"; else msg = isEmNe ? "ô thoi chếc, em bị kéo xuống 1 ô rồi" : "sao ẻm đẹp quá nên ngây ra chứ gì, lùi 1 ô đi";
+                $('system-status-msg').innerText = msg; $('system-status-msg').style.color = move > 0 ? "#2ecc71" : "#ff4757"; 
+                setTimeout(() => { if(move < 0) playSfx('error'); else playSfx('move'); GameState.positions[s] = Math.max(0, Math.min(6, GameState.positions[s] - move)); let targetPos = getPercentageCoordinate(GameState.positions[s], GameState.colMapping[s]); gsap.to(`#ace-entity-${s}`, { left: targetPos.left, top: targetPos.top, duration: 0.6, onComplete: () => checkTraps(idx) }); }, 800); 
+            }; return; 
+        } 
+    } 
+    GameState.status = 'IDLE'; $('system-status-msg').innerText = "RÚT TIẾP I CÒN MỪ"; $('system-status-msg').style.color = "var(--game-text-color)"; 
+}
+
+function triggerVictory(idx) { 
+
+    GameState.status = 'WIN'; $('system-status-msg').innerText = "VỀ ĐÍCH RỒI GIỎI QUÁ!"; 
+
+    let isPlayer = (GameState.gameMode === 'normal' && GameState.selectedCard === idx), isWin = (GameState.gameMode === 'tournament') || isPlayer; window.currentWinStatus = isWin; let headlineNode = $('victory-headline'); 
+
+    
+
+    if (isWin) { 
+
+        playSfx('win'); headlineNode.innerText = "BẠN ĐÃ THẮNG!"; headlineNode.style.color = "#ff99cc"; headlineNode.style.textShadow = "0 0 30px #ff99cc"; confetti({ particleCount: 300, spread: 80, origin: { y: 0.6 } }); 
+
+    } else { 
+
+        playSfx('lose'); headlineNode.innerText = "THUA RÙI :("; headlineNode.style.color = "#e74c3c"; headlineNode.style.textShadow = "0 0 30px #e74c3c"; 
+
+    } 
+
+    
+
+    setTimeout(() => { 
+
+        openModal('overlay-victory'); 
+
+        $('victory-player-name').innerText = isWin ? "NHẤP VÀO LÁ BÀI ĐỂ NHẬN THÔNG ĐIỆP NÈ BÉ" : "Đừng Buồn Nha! Nhấp Vào Lá Bài Điiii!!!"; 
+
+        
+
+        let podium = $('victory-card-podium'); 
+
+        podium.innerHTML = `<div class="card-actor ${GameState.suitClasses[idx]} winner-card-fx" style="position:relative; transform:scale(2); margin:0; cursor:pointer;">A${GameState.suits[idx]}</div>`; 
+
+        podium.onclick = () => { 
+
+            openLoveMessage();
+
+            s_tc++; if(s_tc >= 5) openSecret2(); 
+
+        }; 
+
+    }, 1000); 
+
+}
+
+function openLoveMessage() {
+    let isWin = window.currentWinStatus; $('love-title').innerText = isWin ? "CHÚC MỪNG 8/3 BÉ IU" : "ĐỪNG BUỒN NHÉ BÉ"; $('love-content').innerHTML = isWin ? "Dù mình đang yêu xa, không thể trực tiếp ôm em, nhưng trái tim anh lúc nào cũng hướng về em.<br><br>Đợi ngày mình gặp nhau nhé, yêu em! ❤️" : "Thua một ván cờ đâu có sao, bé luôn thắng trong tim anh mà!<br><br>Mọi chuyện buồn phiền rồi sẽ qua thôi, em hãy luôn giữ nụ cười lạc quan nhé. 🥰"; closeModal('overlay-victory'); openModal('overlay-love-message');
+}
+
+function closeLoveMsg() {
+    s_msg++; closeModal('overlay-love-message'); 
+    if(s_msg >= 2 && s_trp && s_pen && !s_unl) { 
+        s_unl = true; openModal('overlay-secret-1'); 
+    } else quitToScreen('menu-screen');
+}
+
+function openSecret2() {
+    closeModal('overlay-secret-1'); openModal('overlay-secret-2'); clearTimeout(window.secretAutoClose); const txt = document.querySelector('.ltkh-text'); txt.style.animation = 'none'; void txt.offsetWidth; txt.style.animation = 'scrollTxt 25s linear forwards'; window.secretAutoClose = setTimeout(() => { setTimeout(() => { closeModal('overlay-secret-2'); navigateMainMenu('main-hub-screen'); playMasterMusic('menu'); }, 1000); }, 25000);
+}
+
+function playAgain() { 
+    closeModal('overlay-victory'); 
+    $('system-status-msg').innerText = "CHẠM BỘ BÀI ĐỂ RÚT NHA BÉ"; 
+    $('system-status-msg').style.color = "var(--game-text-color)"; 
+    setTimeout(() => initGameRace(), 50); 
+}
+let start = performance.now();
+
+let interval = setInterval(() => {
+    console.log("Still loading...", (performance.now() - start).toFixed(0), "ms");
+}, 1000);
+
+window.addEventListener("load", () => {
+    clearInterval(interval);
+    console.log("Finished loading:", (performance.now() - start).toFixed(0), "ms");
+});
+	document.getElementById('close-modal-btn').addEventListener('click', function() {
+    document.getElementById('welcome-modal').style.display = 'none';
+    
+    if (typeof initSound === "function") {
+        initSound(); 
+    }
+    
+    const audio = document.querySelector('audio'); 
+    if (audio) {
+        audio.play().catch(e => console.log("Chưa phát được nhạc: ", e));
+    }
+});
+	
+function toggleShuffleMode() {
+    playSfx('click');
+    isShuffleMode = !isShuffleMode;
+    const btn = document.getElementById('btn-shuffle-music');
+    if(isShuffleMode) {
+        btn.classList.add('btn-shuffle-active');
+        btn.innerText = "ĐANG TRÁO";
+        gsap.killTweensOf(localAudio); // Cắt đuôi nhạc cũ ngay lập tức, không cho fade nữa
+        playRandomSong();
+    } else {
+        btn.classList.remove('btn-shuffle-active');
+        btn.innerText = "TRÁO NHẠC";
+        playMasterMusic('menu');
+    }
+    renderMusicPages();
+}
+
+function playMasterMusic(t) {
+    if(isShuffleMode) return;
+    const k = userMusicConfig[t];
+    gsap.killTweensOf(localAudio);
+    if(!k) {
+        gsap.to(localAudio, { volume: 0, duration: 1, onComplete: () => { localAudio.pause(); currentMusicKey = null; }});
+        return;
+    }
+    if (currentMusicKey === k && localAudio.src) {
+        if (localAudio.paused) localAudio.play().catch(e=>{});
+        gsap.to(localAudio, { volume: bgmVolume, duration: 1 });
+        return;
+    }
+    let fadeOutDuration = (localAudio.src && !localAudio.paused) ? 1 : 0;
+
+    gsap.to(localAudio, {
+        volume: 0,
+        duration: fadeOutDuration,
+        onComplete: () => {
+            if (isShuffleMode) return; 
+            currentMusicKey = k;
+            localAudio.volume = 0;
+            
+            const playAndFadeIn = (songId, songData) => {
+                if (isShuffleMode) return;
+                executePlayMusic(songId, songData);
+                localAudio.volume = 0; // Ép về 0 để chuyển bài mượt
+                gsap.to(localAudio, { volume: bgmVolume, duration: 1.5, ease: "power1.inOut" });
+            };
+            if(MUSIC_LIBRARY_DEFAULTS[k]) {
+                playAndFadeIn(k, MUSIC_LIBRARY_DEFAULTS[k].data || '');
+            } else {
+                getSongDataFromDB(k).then(d => { if(d) playAndFadeIn(k, d.data || ''); });
+            }
+        }
+    });
+}
+
+function executePlayMusic(k, d) {
+    if(!d || d.includes('[[')) { document.getElementById('custom-player-ui').style.display = 'none'; localAudio.pause(); return; }
+    document.getElementById('custom-player-ui').style.display = 'flex';
+    gsap.killTweensOf(localAudio); 
+    localAudio.volume = bgmVolume;
+
+    localAudio.pause();
+    localAudio.loop = !isShuffleMode;
+    currentPlaybackSpeed = 1.0;
+    if(document.getElementById('speed-dragger')) document.getElementById('speed-dragger').innerText = "1.0x";
+    startProgressTimer();
+    try {
+        const isUrlOrPath = d.startsWith('http://') || d.startsWith('https://') || d.startsWith('data:') || d.startsWith('./') || d.startsWith('/');
+        if(isUrlOrPath) {
+            localAudio.src = new URL(d, window.location.href).href;
+            localAudio.play().catch(e => {});
+        } else {
+            const byteChars = atob(d);
+            const byteNums = new Array(byteChars.length);
+            for (let i = 0; i < byteChars.length; i++) byteNums[i] = byteChars.charCodeAt(i);
+            localAudio.src = URL.createObjectURL(new Blob([new Uint8Array(byteNums)], {type: 'audio/mp3'}));
+            localAudio.play().catch(e => {});
+        }
+    } catch(e) {
+        document.getElementById('custom-player-ui').style.display = 'none';
+    }
+}
+	
+</script>
+
+</body>
+
+</html>
+
+
+
